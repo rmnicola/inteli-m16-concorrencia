@@ -2,8 +2,8 @@
 """Gera o site estático do curso a partir de curso.json, no esquema do site pecege-ons.
 
 Saída em _site/: index.html com a lista de aulas e, para cada aula publicável,
-aulas/<slug>/ com a página da aula (apresentação e recursos), a apresentação
-(copiada de <pasta>/<apresentacao>), os arquivos dos recursos e uma página de
+aulas/<slug>/ com a página da aula (apresentação, roteiros e referências), a apresentação
+(copiada de <pasta>/<apresentacao>), os arquivos listados e uma página de
 passo a passo para cada <pasta>/guias/<nome>.json (em aulas/<slug>/<nome>/).
 Aulas com "rascunho": true ficam fora do site publicado; com "em_breve": true,
 só aparecem anunciadas no índice. Com senha_sha256 no curso, as páginas ganham
@@ -266,8 +266,12 @@ def objetivos(aula: dict) -> str:
     return f'<ul class="objetivos" aria-label="Objetivos de aprendizagem">{itens}</ul>'
 
 
+# Seções da página da aula, nesta ordem: o que a turma faz (guias) e o material de consulta.
+SECOES = (("roteiros", "Roteiros"), ("referencias", "Referências"))
+
+
 def gerar_aula(curso: dict, n: int, aula: dict) -> str:
-    """Página de uma aula: a apresentação e os recursos dela."""
+    """Página de uma aula: a apresentação, os roteiros e as referências."""
     partes = [f"""<section class="secao">
 <p class="rotulo">{marcador(n, aula)}{f" · {escape(aula['horario'])}" if aula.get('horario') else ''}</p>
 <h1>{escape(aula['titulo'])}</h1>
@@ -278,13 +282,15 @@ def gerar_aula(curso: dict, n: int, aula: dict) -> str:
     if aula.get("apresentacao"):
         partes.append(f'<section class="secao"><a class="cartao" href="apresentacao.html"{NOVA_ABA}><span><h3>Apresentação</h3>'
                       f'<p>Abre no navegador · setas do teclado para navegar</p></span><span class="seta">→</span></a></section>')
-    if aula.get("recursos"):
+    for campo, titulo in SECOES:
+        if not aula.get(campo):
+            continue
         itens = "".join(
             f'<li><a href="{escape(r["link"])}"{NOVA_ABA}>{escape(r["rotulo"])}</a><span class="rotulo">{escape(r["tipo"])}</span></li>'
             if r.get("link") else
             f'<li><a href="{escape(Path(r["arquivo"]).name)}" download{NOVA_ABA}>{escape(r["rotulo"])}</a><span class="rotulo">{escape(r["tipo"])}</span></li>'
-            for r in aula["recursos"])
-        partes.append(f'<section class="secao"><h2>Recursos</h2><ul class="arquivos">{itens}</ul></section>')
+            for r in aula[campo])
+        partes.append(f'<section class="secao"><h2>{titulo}</h2><ul class="arquivos">{itens}</ul></section>')
     return pagina(curso, f"{aula['titulo']} · {curso['titulo']}", "\n".join(partes), "../../")
 
 
@@ -413,14 +419,17 @@ def main() -> None:
         destino.mkdir(parents=True)
         if aula.get("apresentacao"):
             shutil.copy(origem / aula["apresentacao"], destino / "apresentacao.html")
-        for item in aula.get("recursos", []):
+        for item in [i for campo, _ in SECOES for i in aula.get(campo, [])]:
             if item.get("arquivo"):
                 shutil.copy(origem / item["arquivo"], destino / Path(item["arquivo"]).name)
         # Passo a passo e roteiros: cada <pasta>/guias/<nome>.json vira aulas/<slug>/<nome>/.
         for guia in sorted((origem / "guias").glob("*.json")):
             prep = json.loads(guia.read_text(encoding="utf-8"))
             (destino / guia.stem).mkdir()
-            (destino / guia.stem / "index.html").write_text(gerar_preparacao(curso, aula, prep), encoding="utf-8")
+            html = gerar_preparacao(curso, aula, prep)
+            if prep.get("oculto"):  # um guia sem link (o gabarito, por exemplo) pede aos buscadores que não o indexem
+                html = html.replace("<head>", '<head>\n<meta name="robots" content="noindex, nofollow">', 1)
+            (destino / guia.stem / "index.html").write_text(html, encoding="utf-8")
         for html in destino.rglob("*.html"):
             html.write_text(com_portao(html.read_text(encoding="utf-8"), curso), encoding="utf-8")
         (destino / "index.html").write_text(com_portao(gerar_aula(curso, n, aula), curso), encoding="utf-8")

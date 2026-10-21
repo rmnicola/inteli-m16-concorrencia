@@ -5,8 +5,173 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>M16 - Introdução à concorrência</title>
 <link rel="stylesheet" href="../../../design-system/css/inteli-exec.css">
+<link rel="stylesheet" href="../../../design-system/assets/fonts/objetos/objetos.css">
 <style>
-/* Estilos sob medida deste deck. Cada slide sob medida tem um id e só se estiliza por ele. */
+/* Estilos sob medida deste deck. Cada slide sob medida tem um id e só se estiliza por ele;
+   o que vale para vários slides fica aqui em cima, com prefixo .slide. */
+
+/* Título no alto, à esquerda, nos slides sob medida */
+.slide .topo { position: absolute; left: 120px; top: 56px; }
+
+/* Código como objeto: Courier Prime, linhas de 46px; .m marca um trecho que se destaca num passo */
+.slide pre.cod { position: absolute; margin: 0; padding: 26px 34px; font: 30px/46px "Courier Prime", monospace; color: #1a1a1a; white-space: pre; }
+.slide pre.cod .c { color: #6b6b6b; }
+.slide pre.cod .m { border-radius: 4px; outline: 3px solid transparent; outline-offset: 2px; transition: outline-color .3s, background .3s; }
+.slide pre.cod .riscado { text-decoration: line-through; text-decoration-color: var(--coral); text-decoration-thickness: 4px; }
+.slide pre.cod.terminal { background: var(--roxo); color: var(--branco); }
+.slide pre.cod.terminal .c { color: var(--cinza-medio); }
+
+/* Legenda que troca a cada passo: os itens ocupam a mesma célula da grade e entram/saem por passos */
+.slide .troca { position: absolute; display: grid; }
+.slide .troca > * { grid-area: 1 / 1; margin: 0; }
+
+/* Linha do tempo (paralelismo e E/S): uma linha por CPU ou thread, blocos de largura fixa */
+.slide .tempo { position: absolute; left: 120px; display: flex; flex-direction: column; gap: 22px; }
+.slide .tempo .fila { display: flex; align-items: center; gap: 0; height: 76px; }
+.slide .tempo .quem { width: 170px; font: 700 28px var(--f-destaque); }
+.slide .tempo .bloco { height: 76px; display: grid; place-items: center; font-size: 28px; font-weight: 600; outline: 3px solid var(--roxo); outline-offset: -3px; }
+.slide .tempo .calc { background: var(--verde); }
+.slide .tempo .es { background: repeating-linear-gradient(135deg, var(--branco) 0 12px, var(--cinza-medio) 12px 24px); }
+.slide .tempo .vazio { outline: none; }
+.slide .tempo .eixo { margin-left: 170px; border-top: 3px solid var(--roxo); padding-top: 8px; font-size: 28px; color: var(--texto-suave); }
+
+/* #pcs: uma listagem e os PCs apontando para linhas dela */
+#pcs pre.cod { left: 120px; top: 190px; }
+#pcs .pc { position: absolute; left: 1050px; display: flex; align-items: center; gap: 14px; font: 700 28px var(--f-destaque); }
+#pcs .pc::before { content: ""; width: 0; height: 0; border-top: 16px solid transparent; border-bottom: 16px solid transparent; border-right: 26px solid var(--coral); }
+#pcs .pc span { background: var(--roxo); color: var(--branco); padding: 2px 12px; border-radius: 6px; }
+#pcs .pc.t2 span { background: var(--lilas); color: var(--roxo); }
+
+/* #espaco: figura 26.1, address space com uma e com duas pilhas */
+#espaco .col { position: absolute; top: 190px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+#espaco .barra { position: relative; width: 340px; height: 600px; background: var(--branco); outline: 3px solid var(--roxo); }
+#espaco .barra > div { position: absolute; left: 0; right: 0; display: grid; place-items: center; font-size: 28px; }
+#espaco .cod-r { background: var(--lilas); } #espaco .heap-r { background: var(--verde); } #espaco .pilha-r { background: var(--cinza-escuro); }
+#espaco .cab { font-size: 28px; color: var(--texto-suave); }
+
+/* #troca: a CPU por dentro (registradores e TLB) entre os dois blocos de controle; montada por sims.js */
+#troca .sim { position: absolute; inset: 0; }
+#troca .sim > * { position: absolute; }
+#troca .bloco-ctl { width: 360px; border: 3px solid var(--roxo); background: var(--branco); padding: 18px 22px; display: flex; flex-direction: column; gap: 12px; }
+#troca .bloco-ctl .nome { font-size: 34px; font-weight: 700; }
+#troca .bloco-ctl .tipo { font-size: 28px; color: var(--texto-suave); }
+#troca .cpu { width: 520px; background: var(--roxo); color: var(--branco); padding: 20px 26px 26px; display: flex; flex-direction: column; gap: 14px; }
+#troca .cpu .nome { font-size: 34px; font-weight: 700; display: flex; justify-content: space-between; align-items: baseline; }
+#troca .cpu .nome span { font-size: 28px; font-weight: 400; color: var(--cinza-medio); }
+#troca .cpu .sub { font-size: 28px; color: var(--cinza-medio); }
+#troca table { border-collapse: collapse; font: 28px/1 var(--f-destaque); width: 100%; }
+#troca td { padding: 8px 12px; border: 2px solid var(--cinza-escuro); white-space: nowrap; transition: background .3s, color .3s; }
+#troca td:first-child { color: var(--texto-suave); width: 40%; }
+#troca .cpu td { border-color: #5d5870; }
+#troca .cpu td:first-child { color: var(--cinza-medio); }
+#troca td.vazio { color: var(--cinza-escuro); }
+#troca .cpu td.vazio { color: #8a8599; }
+#troca td.mudou { background: var(--coral); color: var(--roxo); font-weight: 700; }
+#troca td.igual { background: var(--verde); color: var(--roxo); font-weight: 700; }
+#troca .cpu td.mudou, #troca .cpu td.igual { color: var(--roxo); }
+#troca .seta-ctl { font: 700 56px/1 var(--f-texto); color: var(--coral-texto); }
+#troca .legenda-troca { font-size: 34px; }
+#troca .legenda-troca b { color: var(--coral-texto); }
+#troca .legenda-troca b.bom { color: var(--texto); background: var(--verde); padding: 0 8px; border-radius: 6px; }
+
+/* #t0: quem roda primeiro */
+#t0 > pre.cod { left: 120px; top: 190px; font-size: 28px; line-height: 44px; }
+#t0 .saidas { position: absolute; left: 1040px; top: 180px; display: flex; flex-direction: column; gap: 28px; }
+#t0 .saidas pre.cod { position: static; width: 440px; font-size: 28px; line-height: 40px; padding: 18px 28px; }
+#t0 .cab { font-size: 28px; color: var(--texto-suave); margin: 0 0 10px; }
+#t0 .interrogacao { position: absolute; left: 120px; top: 690px; font: 700 96px/1 var(--f-destaque); color: var(--coral-texto); }
+
+/* #paralelismo e #es */
+#paralelismo .tempo, #es .tempo { top: 220px; }
+#paralelismo .rotulo-termo { left: 120px; top: 700px; }
+#es .rotulo-termo { left: 120px; top: 560px; }
+
+/* #t1: o contador compartilhado */
+#t1 pre.cod { left: 120px; top: 180px; }
+#t1 .saidas { position: absolute; left: 1030px; top: 180px; display: flex; flex-direction: column; gap: 26px; }
+#t1 .saida { font: 700 40px var(--f-destaque); }
+#t1 .saida small { display: block; font: 400 28px var(--f-texto); color: var(--texto-suave); }
+#t1 .errado { color: var(--coral-texto); }
+#t1 .rotulo-termo { left: 1030px; top: 720px; }
+
+/* #tres: uma linha de C, três instruções */
+#tres .conteudo { align-items: flex-start; }
+#tres .linha-c { font: 700 64px var(--f-destaque); }
+#tres pre.cod { position: static; }
+#tres .seta-baixo { font-size: 56px; color: var(--coral-texto); line-height: 1; margin-left: 40px; }
+
+/* #atomico: o desejo de atomicidade */
+#atomico .conteudo { align-items: flex-start; gap: 40px; }
+#atomico pre.cod { position: static; }
+
+/* #create: a assinatura de pthread_create */
+#create pre.cod { left: 120px; top: 190px; }
+#create .troca { left: 120px; top: 580px; width: 1360px; }
+#create[data-estado="1"] .a1, #create[data-estado="2"] .a2, #create[data-estado="3"] .a3, #create[data-estado="4"] .a4 { outline-color: var(--coral); background: #fff2f2; }
+
+/* #join e #oops: código à esquerda, explicação à direita */
+#join pre.cod, #oops pre.cod { left: 120px; top: 180px; font-size: 28px; line-height: 44px; }
+#join .troca, #oops .lado { left: 1000px; top: 230px; width: 480px; }
+#join[data-estado="1"] .a1, #join[data-estado="2"] .a2 { outline-color: var(--coral); background: #fff2f2; }
+#oops .lado { position: absolute; display: flex; flex-direction: column; gap: 24px; }
+#oops .pilha { display: grid; }
+#oops .pilha > * { grid-area: 1 / 1; border: 3px solid var(--roxo); padding: 20px 24px; min-height: 190px; display: flex; flex-direction: column; justify-content: center; gap: 8px; }
+#oops .viva { background: var(--cinza-escuro); }
+#oops .liberada { background: repeating-linear-gradient(135deg, var(--branco) 0 12px, rgba(255, 69, 69, .45) 12px 18px); }
+#oops .pilha b { font-size: 28px; }
+#oops .pilha .mono { font: 700 30px var(--f-destaque); }
+#oops[data-estado="1"] .a1 { outline-color: var(--coral); background: #fff2f2; }
+
+/* #lock */
+#lock pre.cod { left: 120px; top: 190px; }
+#lock .troca { left: 120px; top: 560px; width: 1360px; }
+#lock[data-estado="1"] .a1, #lock[data-estado="2"] .a2, #lock[data-estado="3"] .a3 { outline-color: var(--coral); background: #fff2f2; }
+#lock .rotulo-termo { left: 1250px; top: 400px; }
+
+/* #livro: a capa do OSTEP como objeto, com o título ao lado */
+#livro .capa-livro { left: 200px; top: 126px; height: 648px; transform: rotate(-2deg); }
+#livro .lado-livro { position: absolute; left: 700px; top: 0; bottom: 0; width: 780px; display: flex; flex-direction: column; justify-content: center; gap: 24px; }
+
+/* #roteiro: a passagem para o roteiro, com o QR code da página da aula */
+#roteiro .esq { position: absolute; left: 120px; top: 200px; width: 860px; display: flex; flex-direction: column; gap: 36px; }
+#roteiro pre.cod { position: static; }
+#roteiro .qr { position: absolute; left: 1100px; top: 220px; width: 380px; display: flex; flex-direction: column; gap: 20px; align-items: center; text-align: center; }
+#roteiro .qr img { width: 340px; height: 340px; image-rendering: pixelated; background: var(--branco); padding: 20px; box-sizing: content-box; }
+
+/* ---------- #sim-corrida: a intercalação da figura 26.7, com a turma no papel do escalonador ---------- */
+#sim-corrida .sim { position: absolute; inset: 0; z-index: 1; }
+#sim-corrida .sim > * { position: absolute; }
+#sim-corrida .thr { width: 470px; border: 3px solid var(--cinza-escuro); background: var(--branco); padding: 18px 22px 22px; display: flex; flex-direction: column; gap: 14px; transition: border-color .25s; }
+#sim-corrida .thr.rodando { border-color: var(--roxo); outline: 3px solid var(--roxo); }
+#sim-corrida .thr .cab-thr { display: flex; align-items: center; justify-content: space-between; }
+#sim-corrida .thr .nome { font-size: 34px; font-weight: 700; }
+#sim-corrida .thr .estado { font-size: 28px; color: var(--texto-suave); }
+#sim-corrida .ins { white-space: nowrap; font: 28px/44px "Courier Prime", monospace; color: #1a1a1a; padding: 0 10px; border-radius: 4px; display: flex; gap: 16px; }
+#sim-corrida .ins .end { color: #6b6b6b; width: 3ch; }
+#sim-corrida .ins.feita { color: #8a8a8a; }
+#sim-corrida .ins.proxima { outline: 3px solid var(--coral); }
+#sim-corrida .secao { border-left: 5px solid var(--coral); padding-left: 10px; display: flex; flex-direction: column; gap: 2px; }
+#sim-corrida .regs { display: flex; align-items: center; gap: 14px; font: 28px var(--f-destaque); }
+#sim-corrida .chip { padding: 0 10px; border-radius: 6px; background: var(--lilas); font-weight: 700; display: inline-block; min-width: 2.4ch; text-align: center; }
+#sim-corrida .acoes { display: flex; gap: 12px; }
+#sim-corrida button { font: 28px/1.2 var(--f-texto); color: var(--roxo); background: transparent; border: 3px solid var(--roxo); padding: 4px 18px; cursor: pointer; }
+#sim-corrida button:disabled { opacity: .35; cursor: default; }
+#sim-corrida button.ativo { background: var(--roxo); color: var(--branco); }
+#sim-corrida button.icone { width: 64px; height: 64px; padding: 10px; border-radius: 10px; display: grid; place-items: center; }
+#sim-corrida button.icone svg { width: 36px; height: 36px; }
+#sim-corrida .mem { border: 3px solid var(--roxo); background: var(--branco); padding: 18px 22px; display: flex; flex-direction: column; gap: 6px; }
+#sim-corrida .mem .cab { font-size: 28px; color: var(--texto-suave); }
+#sim-corrida .mem .valor { font: 700 96px/1 var(--f-destaque); }
+#sim-corrida .mem .valor.mudou { color: var(--coral-texto); }
+#sim-corrida .resultado { font: 700 34px/1.3 var(--f-texto); }
+#sim-corrida .resultado .ruim { color: var(--coral-texto); }
+#sim-corrida .trilha { display: flex; gap: 10px; flex-wrap: nowrap; align-items: center; }
+#sim-corrida .trilha .rot-trilha { font-size: 28px; color: var(--texto-suave); margin-right: 8px; }
+#sim-corrida .trilha .ev { font: 700 28px var(--f-destaque); padding: 4px 10px; border-radius: 6px; }
+#sim-corrida .trilha .ev.t1 { background: var(--roxo); color: var(--branco); }
+#sim-corrida .trilha .ev.t2 { background: var(--lilas); color: var(--roxo); }
+#sim-corrida .trilha .ev.interrupcao { background: none; color: var(--coral-texto); padding: 0 2px; }
+#sim-corrida .rodape-sim { display: flex; gap: 12px; align-items: center; }
 </style>
 </head>
 <body>
@@ -18,9 +183,329 @@
       <h1 class="titulo-capa">M16 - Introdução à concorrência</h1>
       <p class="autor">Prof. Nicola</p>
     </div>
+    <aside class="notas">Concorrência e threads (OSTEP, caps. 26 e 27). Duas horas: cerca de uma hora para os caps. 26 (o que é, por que usar, problemas) e uma hora para a API de threads, com o roteiro do homework do cap. 27 no fim. Os links dos capítulos, o setup e o roteiro estão na página da aula.</aside>
+  </section>
+
+  <!-- ===================== 01 · O que é concorrência ===================== -->
+
+  <section class="slide" id="livro" data-modelo="livro" data-max-palavras="30">
+    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="objeto capa-livro" src="assets/ostep-capa.jpg" alt="Capa do livro Operating Systems: Three Easy Pieces">
+    <div class="lado-livro">
+      <p class="subtitulo">Operating Systems: Three Easy Pieces</p>
+      <p class="texto" style="max-width: none">Capítulos 26 e 27</p>
+      <p class="legenda">ostep.org · gratuito</p>
+    </div>
+    <aside class="notas">O livro da disciplina, de Remzi e Andrea Arpaci-Dusseau, gratuito em ostep.org (os PDFs dos capítulos estão na página da aula). Até aqui ele virtualizou a CPU (processos) e a memória (address spaces). Hoje começa a segunda parte, concorrência: o cap. 26 apresenta o problema e o cap. 27, a API de threads.</aside>
+  </section>
+
+  <section class="slide agenda curta" data-agora="0">
+    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <aside class="notas">Agenda. Primeiro, uma abstração nova dentro de um processo: a thread.</aside>
+  </section>
+
+  <section class="slide" id="pcs" data-modelo="pcs" data-max-palavras="60">
+    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">Mais de um ponto de execução</h2>
+<pre class="objeto cod">void *mythread(void *arg) {
+    printf("%s\n", (char *) arg);
+    return NULL;
+}
+
+int main(int argc, char *argv[]) {
+    pthread_t p1, p2;
+    printf("main: begin\n");
+    Pthread_create(&amp;p1, NULL, mythread, "A");</pre>
+    <div class="pc passo" data-passo="0" data-sai="1" style="top: 541px"><span>PC</span></div>
+    <div class="pc passo" data-passo="1" style="top: 541px"><span>PC main</span></div>
+    <div class="pc t2 passo" data-passo="1" style="top: 265px"><span>PC T1</span></div>
+    <aside class="notas">Até agora, um processo tinha um único ponto de execução: um PC de onde as instruções são buscadas. Avance: um programa multithread tem mais de um PC, cada um executando por conta própria, com os próprios registradores. Cada thread é quase um processo separado, com uma diferença: todas compartilham o mesmo address space, e por isso enxergam os mesmos dados (OSTEP, início do cap. 26).</aside>
+  </section>
+
+  <section class="slide" id="espaco" data-modelo="espaco" data-max-palavras="40">
+    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">Uma pilha por thread</h2>
+    <div class="col" style="left: 260px">
+      <div class="barra">
+        <div class="cod-r" style="top: 0; height: 56px">código</div>
+        <div class="heap-r" style="top: 56px; height: 113px">heap</div>
+        <div class="pilha-r" style="top: 506px; height: 94px">pilha</div>
+      </div>
+      <span class="cab">uma thread</span>
+    </div>
+    <div class="col passo" data-passo="1" style="left: 820px">
+      <div class="barra">
+        <div class="cod-r" style="top: 0; height: 56px">código</div>
+        <div class="heap-r" style="top: 56px; height: 113px">heap</div>
+        <div class="pilha-r" style="top: 281px; height: 94px">pilha (2)</div>
+        <div class="pilha-r" style="top: 506px; height: 94px">pilha (1)</div>
+      </div>
+      <span class="cab">duas threads</span>
+    </div>
+    <aside class="notas">Fig. 26.1 do OSTEP, um address space de 16 KB. À esquerda, o processo clássico: código e heap em cima, uma pilha embaixo, e os dois crescem um em direção ao outro. Avance: com duas threads, cada uma chama as próprias funções, então precisa da própria pilha. Variáveis locais, parâmetros e endereços de retorno ficam na pilha da thread (o livro chama isso de thread-local storage). O layout bonito acaba, mas pilhas costumam ser pequenas (a exceção é recursão pesada). Código, heap e globais continuam compartilhados.</aside>
+  </section>
+
+  <section class="slide" id="troca" data-modelo="troca-de-contexto" data-max-palavras="90">
+    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">Troca de contexto</h2>
+    <div class="sim" data-sim="troca"></div>
+    <i class="passo" data-passo="1"></i><i class="passo" data-passo="2"></i><i class="passo" data-passo="3"></i><i class="passo" data-passo="4"></i><i class="passo" data-passo="5"></i>
+    <aside class="notas">Primeiro entre dois processos, depois entre duas threads. Processos (passos 0 a 2): A está na CPU; o SO salva os registradores de A no PCB (process control block) e restaura os de B. O PTBR (page-table base register) muda, porque B tem outro address space, e as traduções da TLB de A não servem para B: a TLB é esvaziada (ou cada entrada tem um identificador do processo, o ASID). Threads (passos 3 a 5): duas threads do mesmo processo. O SO salva T1 no TCB (thread control block) e restaura T2: PC, SP e eax mudam, o PTBR é o mesmo e a TLB continua valendo. Pergunta: qual das duas trocas é mais barata? Por quê?</aside>
+  </section>
+
+  <section class="slide" id="t0" data-modelo="t0" data-max-palavras="60">
+    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">Quem roda primeiro?</h2>
+<pre class="objeto cod">int main(int argc, char *argv[]) {
+    pthread_t p1, p2;
+    printf("main: begin\n");
+    Pthread_create(&amp;p1, NULL, mythread, "A");
+    Pthread_create(&amp;p2, NULL, mythread, "B");
+    Pthread_join(p1, NULL);
+    Pthread_join(p2, NULL);
+    printf("main: end\n");
+}</pre>
+    <div class="saidas">
+      <div class="passo" data-passo="1">
+        <p class="cab">uma execução</p>
+<pre class="objeto cod terminal">main: begin
+A
+B
+main: end</pre>
+      </div>
+      <div class="passo" data-passo="2">
+        <p class="cab">outra execução</p>
+<pre class="objeto cod terminal">main: begin
+B
+A
+main: end</pre>
+      </div>
+    </div>
+    <p class="interrogacao passo" data-passo="3">???</p>
+    <aside class="notas">t0.c, fig. 26.2. A main cria T1 (imprime "A") e T2 (imprime "B") e espera as duas com join. Pergunta antes de avançar: o que esse programa imprime? Avance: uma execução, na ordem em que as threads foram criadas. Avance de novo: outra execução, com B antes de A (fig. 26.5). Por quê? Uma thread criada pode rodar na hora ou muito depois; quem decide é o escalonador, e ser criada primeiro não quer dizer rodar primeiro. "main: end" sempre sai por último, por causa dos joins.</aside>
+  </section>
+
+  <!-- ===================== 02 · Por que usar threads ===================== -->
+
+  <section class="slide agenda curta" data-agora="1">
+    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <aside class="notas">Agenda: por que usar threads. O OSTEP dá dois motivos (seção 26.1).</aside>
+  </section>
+
+  <section class="slide" id="paralelismo" data-modelo="linha-do-tempo" data-max-palavras="40">
+    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">Paralelismo</h2>
+    <div class="tempo">
+      <div class="fila"><span class="quem">CPU 0</span>
+        <span class="bloco calc" style="width: 280px">¼ do vetor</span>
+        <span class="bloco calc passo" data-passo="0" data-sai="1" style="width: 280px">¼</span>
+        <span class="bloco calc passo" data-passo="0" data-sai="1" style="width: 280px">¼</span>
+        <span class="bloco calc passo" data-passo="0" data-sai="1" style="width: 280px">¼</span>
+      </div>
+      <div class="fila passo" data-passo="1"><span class="quem">CPU 1</span><span class="bloco calc" style="width: 280px">¼</span></div>
+      <div class="fila passo" data-passo="1"><span class="quem">CPU 2</span><span class="bloco calc" style="width: 280px">¼</span></div>
+      <div class="fila passo" data-passo="1"><span class="quem">CPU 3</span><span class="bloco calc" style="width: 280px">¼</span></div>
+      <div class="eixo" style="width: 1120px">tempo →</div>
+    </div>
+    <p class="rotulo-termo passo" data-passo="1">Paralelização · uma thread por CPU</p>
+    <aside class="notas">Primeiro motivo: paralelismo. Somar ou incrementar um vetor enorme numa CPU só: um pedaço depois do outro. Avance: com quatro CPUs e uma thread por CPU, cada uma faz um quarto, e o trabalho termina em um quarto do tempo (no caso ideal). Transformar um programa sequencial nisso é paralelizar. Pergunta: e com 8 threads em 4 CPUs?</aside>
+  </section>
+
+  <section class="slide" id="es" data-modelo="linha-do-tempo" data-max-palavras="40">
+    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">Não ficar parado esperando E/S</h2>
+    <div class="tempo">
+      <div class="fila"><span class="quem">T1</span>
+        <span class="bloco calc" style="width: 260px">calcula</span>
+        <span class="bloco es" style="width: 520px">espera o disco</span>
+        <span class="bloco calc" style="width: 260px">calcula</span>
+      </div>
+      <div class="fila passo" data-passo="1"><span class="quem">T2</span>
+        <span class="bloco vazio" style="width: 260px"></span>
+        <span class="bloco calc" style="width: 260px">calcula</span>
+        <span class="bloco es" style="width: 260px">rede</span>
+      </div>
+      <div class="eixo" style="width: 1040px">tempo →</div>
+    </div>
+    <p class="rotulo-termo passo" data-passo="1">Sobreposição de E/S e cálculo</p>
+    <aside class="notas">Segundo motivo, mais sutil: não travar o programa numa E/S lenta (disco, rede, até uma falta de página). Enquanto T1 está bloqueada, o escalonador põe outra thread para rodar. Avance: T2 calcula durante a espera de T1, e ainda dispara a própria E/S. É a multiprogramação dentro de um programa só; servidores web e bancos de dados fazem isso o tempo todo.</aside>
+  </section>
+
+  <!-- ===================== 03 · Problemas da concorrência ===================== -->
+
+  <section class="slide agenda curta" data-agora="2">
+    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <aside class="notas">Agenda: os problemas que o compartilhamento traz (seções 26.3 a 26.6).</aside>
+  </section>
+
+  <section class="slide" id="t1" data-modelo="t1" data-max-palavras="60">
+    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">Um contador compartilhado</h2>
+<pre class="objeto cod">static volatile int counter = 0;
+
+void *mythread(void *arg) {
+    int i;
+    for (i = 0; i &lt; 1e7; i++) {
+        counter = counter + 1;
+    }
+    return NULL;
+}
+<span class="c">// main: cria A e B, espera as duas</span></pre>
+    <div class="saidas">
+      <p class="saida">20000000<small>o esperado</small></p>
+      <p class="saida errado passo" data-passo="1">19345221<small>uma execução</small></p>
+      <p class="saida errado passo" data-passo="2">19221041<small>outra execução</small></p>
+    </div>
+    <p class="rotulo-termo passo" data-passo="2">Indeterminado</p>
+    <aside class="notas">t1.c, fig. 26.6. Duas threads, cada uma soma 1 ao contador global 10 milhões de vezes. O esperado é 20 milhões. Pergunta: alguém aposta no resultado? Avance: às vezes dá certo, mas em geral não, mesmo numa CPU só. E avance de novo: cada execução dá um resultado diferente. O resultado é indeterminado. Por quê? A resposta está no que o compilador gera para uma linha só.</aside>
+  </section>
+
+  <section class="slide" id="tres" data-modelo="tres-instrucoes" data-max-palavras="30">
+    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <div class="conteudo">
+      <p class="linha-c">counter = counter + 1;</p>
+      <p class="seta-baixo passo" data-passo="1">↓</p>
+<pre class="objeto cod passo" data-passo="1"><span class="c">100</span>  mov 0x8049a1c, %eax   <span class="c">// lê da memória</span>
+<span class="c">105</span>  add $0x1, %eax         <span class="c">// soma no registrador</span>
+<span class="c">108</span>  mov %eax, 0x8049a1c   <span class="c">// escreve na memória</span></pre>
+    </div>
+    <aside class="notas">Seção 26.4. Uma linha de C, três instruções x86 (objdump -d mostra isso no seu binário). O counter está no endereço 0x8049a1c. A instrução mov copia o valor para o eax, o add soma 1 no registrador, o segundo mov grava de volta. Uma interrupção de timer pode cair entre quaisquer duas delas. No próximo slide, vocês são o escalonador.</aside>
+  </section>
+
+  <section class="slide" id="sim-corrida" data-modelo="simulador" data-max-palavras="150">
+    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <div class="sim" data-sim="corrida"></div>
+    <aside class="notas">Fig. 26.7 do OSTEP. O counter começa em 50; cada thread vai executar as três instruções uma vez; o certo é 52. A turma é o escalonador: o botão de cada thread (step over) roda a próxima instrução dela. Cada thread tem o próprio eax (salvo no TCB quando ela sai da CPU). Primeiro rode T1 inteira e depois T2: 52. Recomece (↺) e peça um escalonamento que dê errado, por exemplo o da fig. 26.7: T1 faz mov e add, troca, T2 faz as três, T1 grava 51. Termos que aparecem: race condition (o resultado depende do momento das trocas) e seção crítica (o trecho que acessa a variável compartilhada, a barra coral). O que queremos é exclusão mútua: enquanto uma thread está na seção crítica, a outra não entra. Pergunta: quantos escalonamentos dão 52? E quantos dão 51?</aside>
+  </section>
+
+  <section class="slide" id="atomico" data-modelo="atomico" data-max-palavras="40">
+    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <div class="conteudo">
+      <p class="subtitulo">E se fosse uma instrução só?</p>
+<pre class="objeto cod">memory-add 0x8049a1c, $0x1</pre>
+      <p class="texto passo" data-passo="1" style="max-width: none">Atômica: ou executa inteira, ou nada. A interrupção nunca cai no meio.</p>
+    </div>
+    <aside class="notas">Seção 26.5, o desejo de atomicidade. Uma instrução hipotética que soma direto na memória, e que o hardware garante ser atômica ("tudo ou nada", como uma transação). Resolveria o contador, mas não dá para ter uma instrução atômica para cada estrutura de dados (uma árvore B, por exemplo). Em vez disso, o hardware dá umas poucas instruções úteis e, com a ajuda do SO, construímos primitivas de sincronização. É o assunto das próximas aulas. Hoje: as primitivas que a biblioteca de threads já oferece.</aside>
+  </section>
+
+  <!-- ===================== 04 · API de threads ===================== -->
+
+  <section class="slide agenda curta" data-agora="3">
+    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <aside class="notas">Agenda: a API de threads POSIX (cap. 27). Uns 20 minutos de conceitos e depois o roteiro do homework, uns 40 minutos.</aside>
+  </section>
+
+  <section class="slide" id="create" data-modelo="assinatura" data-max-palavras="60">
+    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">Criar uma thread</h2>
+<pre class="objeto cod">#include &lt;pthread.h&gt;
+
+int pthread_create(<span class="m a1">pthread_t *thread</span>,
+                   <span class="m a2">const pthread_attr_t *attr</span>,
+                   <span class="m a3">void *(*start_routine)(void *)</span>,
+                   <span class="m a4">void *arg</span>);</pre>
+    <i class="passo" data-passo="1"></i><i class="passo" data-passo="2"></i><i class="passo" data-passo="3"></i><i class="passo" data-passo="4"></i>
+    <div class="troca">
+      <p class="texto passo" data-passo="1" data-sai="2" style="max-width: none">Onde guardar a identificação da thread.</p>
+      <p class="texto passo" data-passo="2" data-sai="3" style="max-width: none">Atributos, como o tamanho da pilha. NULL: os padrões.</p>
+      <p class="texto passo" data-passo="3" data-sai="4" style="max-width: none">A função que a thread vai executar.</p>
+      <p class="texto passo" data-passo="4" style="max-width: none">O argumento dessa função: void * aceita qualquer tipo.</p>
+    </div>
+    <aside class="notas">Seção 27.1. Quatro argumentos, um por passo. O terceiro é um ponteiro para função: recebe um void * e devolve um void *. Por que void *? Porque assim a função pode receber qualquer argumento e devolver qualquer resultado: basta converter (cast). Para passar mais de um valor, empacote numa struct e passe o endereço dela (fig. 27.1).</aside>
+  </section>
+
+  <section class="slide" id="join" data-modelo="codigo-explicado" data-max-palavras="60">
+    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">Esperar a thread terminar</h2>
+<pre class="objeto cod">void *mythread(void *arg) {
+    myret_t *r = Malloc(sizeof(myret_t));
+    r-&gt;x = 1; r-&gt;y = 2;
+    <span class="m a2">return (void *) r;</span>
+}
+
+int main(int argc, char *argv[]) {
+    pthread_t p;
+    myret_t *r;
+    Pthread_create(&amp;p, NULL, mythread, NULL);
+    <span class="m a1">Pthread_join(p, (void **) &amp;r);</span>
+    printf("%d %d\n", r-&gt;x, r-&gt;y);
+}</pre>
+    <i class="passo" data-passo="1"></i><i class="passo" data-passo="2"></i>
+    <div class="troca">
+      <p class="texto passo" data-passo="1" data-sai="2">join bloqueia a main até a thread p terminar.</p>
+      <p class="texto passo" data-passo="2">O valor devolvido pela thread chega pelo segundo argumento do join.</p>
+    </div>
+    <aside class="notas">Seção 27.2, fig. 27.2 resumida. pthread_join(thread, void **valor): espera a thread terminar e, se o segundo argumento não for NULL, recebe o que ela devolveu. É void ** porque o join precisa escrever no seu ponteiro. Pthread_ com P maiúsculo são os wrappers do livro, que conferem o retorno. Criar e logo dar join é só uma chamada de função mais cara; o normal é criar várias e depois esperar todas.</aside>
+  </section>
+
+  <section class="slide" id="oops" data-modelo="codigo-explicado" data-max-palavras="60">
+    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">Nunca devolva algo da pilha</h2>
+<pre class="objeto cod">void *mythread(void *arg) {
+    myret_t oops;   <span class="c">// na pilha da thread</span>
+    oops.x = 1;
+    oops.y = 2;
+    <span class="m a1">return (void *) &amp;oops;</span>
+}</pre>
+    <i class="passo" data-passo="1"></i>
+    <div class="lado">
+      <div class="pilha">
+        <div class="viva passo" data-passo="0" data-sai="1"><b>pilha da thread</b><span class="mono">oops = {1, 2}</span></div>
+        <div class="liberada passo" data-passo="1"><b>pilha liberada</b><span class="mono">??? </span></div>
+      </div>
+      <p class="texto passo" data-passo="1">O ponteiro devolvido aponta para memória que já não é da thread.</p>
+    </div>
+    <aside class="notas">Ainda na seção 27.2. A variável oops está na pilha de mythread. Quando a função retorna, essa pilha é liberada; o join entrega um ponteiro para memória que pode ser reaproveitada a qualquer momento. Pode até parecer funcionar, o que é pior. O gcc costuma avisar (-Wall): mais um motivo para ler os warnings. Retorne algo alocado com malloc (slide anterior) ou um valor simples convertido para void *.</aside>
+  </section>
+
+  <section class="slide" id="lock" data-modelo="codigo-explicado" data-max-palavras="60">
+    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">Locks</h2>
+<pre class="objeto cod"><span class="m a1">pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;</span>
+
+<span class="m a2">Pthread_mutex_lock(&amp;lock);</span>
+counter = counter + 1;   <span class="c">// seção crítica</span>
+<span class="m a2">Pthread_mutex_unlock(&amp;lock);</span></pre>
+    <i class="passo" data-passo="1"></i><i class="passo" data-passo="2"></i><i class="passo" data-passo="3"></i>
+    <div class="troca">
+      <p class="texto passo" data-passo="1" data-sai="2" style="max-width: none">Todo lock precisa ser inicializado (ou com pthread_mutex_init).</p>
+      <p class="texto passo" data-passo="2" data-sai="3" style="max-width: none">Se outra thread tem o lock, quem chama lock espera até ele ser liberado.</p>
+      <p class="texto passo" data-passo="3" style="max-width: none">lock e unlock também podem falhar: confira o retorno.</p>
+    </div>
+    <p class="rotulo-termo passo" data-passo="2">Exclusão mútua</p>
+    <aside class="notas">Seção 27.3. O contador do simulador, agora protegido. Passo 1: inicialize (estático, com PTHREAD_MUTEX_INITIALIZER, ou em tempo de execução, com pthread_mutex_init, e pthread_mutex_destroy no fim). Passo 2: lock e unlock em volta da seção crítica; só uma thread por vez passa. Passo 3: como quase tudo no UNIX, essas chamadas podem falhar, e a falha silenciosa deixa duas threads entrarem. Por isso os wrappers com P maiúsculo (fig. 27.4). Existem também trylock e timedlock, úteis quando falarmos de deadlock.</aside>
+  </section>
+
+  <section class="slide" id="roteiro" data-modelo="roteiro" data-max-palavras="60">
+    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">Agora é com vocês</h2>
+    <div class="esq">
+      <p class="texto" style="max-width: none">Compilar com threads:</p>
+<pre class="objeto cod terminal">gcc -o main main.c -Wall -pthread</pre>
+      <p class="texto" style="max-width: none">Caçar bugs de concorrência:</p>
+<pre class="objeto cod terminal">valgrind --tool=helgrind ./main-race</pre>
+    </div>
+    <div class="qr">
+      <img src="assets/qr-aula.png" alt="QR code da página da aula">
+      <p class="legenda">Setup e roteiro na página da aula</p>
+    </div>
+    <aside class="notas">Seção 27.5 e o homework do cap. 27. Para compilar, inclua pthread.h e ligue com -pthread. O roteiro segue as 9 questões do homework (em 11 passos) com o helgrind, a ferramenta do valgrind que detecta corridas e erros de ordem de lock. O QR leva à página da aula: primeiro o "Setup do ambiente" (Linux, Windows com WSL ou macOS com Docker; o valgrind não roda no macOS atual), depois o "Roteiro". Uns 40 minutos. Circule e, no fim, cobre as respostas sobre o lock em volta das duas atualizações, o lock global e a variável de condição (passos 3, 6 e 9 do roteiro).</aside>
   </section>
 
 </main>
+<script>
+  /* Agenda: fonte única para os slides .agenda */
+  const AGENDA = ["O que é concorrência", "Por que usar threads", "Problemas da concorrência", "API de threads"];
+  document.querySelectorAll(".slide.agenda").forEach((sec) => {
+    const agora = parseInt(sec.dataset.agora, 10);
+    const itens = document.createElement("div");
+    itens.className = "itens";
+    itens.innerHTML = `<p class="rotulo-agenda">Agenda</p>` + AGENDA.map((t, i) =>
+      `<p class="item${i < agora ? " passou" : i === agora ? " agora" : ""}"><span class="marcador">${String(i + 1).padStart(2, "0")}</span>${t}</p>`).join("");
+    sec.append(itens);
+  });
+</script>
+<script src="sims.js"></script>
 <script src="../../../design-system/js/deck.js"></script>
 </body>
 </html>

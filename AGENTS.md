@@ -2,7 +2,7 @@
 
 Aulas de Rodrigo Nicola sobre concorrência, no módulo 16 da graduação do Inteli. Os decks usam a identidade **Inteli** (logo inteli, capa triangular, sem tela de pesquisa), nunca a Exec.
 
-O site segue o esquema do `pecege-ons`: `curso.json` é a fonte única, a página inicial é a lista das aulas, e cada aula tem a própria página, com a apresentação e os recursos. Cada aula tem pasta própria, `aulas/<aula>/`, com um deck só em `apresentacao/`, atualizado no lugar: não crie pastas datadas nem cópias para guardar versões. Uma versão antiga se recupera num commit antigo.
+O site segue o esquema do `pecege-ons`: `curso.json` é a fonte única, a página inicial é a lista das aulas, e cada aula tem a própria página, com a apresentação, os roteiros e as referências. Cada aula tem pasta própria, `aulas/<aula>/`, com um deck só em `apresentacao/`, atualizado no lugar: não crie pastas datadas nem cópias para guardar versões. Uma versão antiga se recupera num commit antigo.
 
 Para criar, editar ou revisar apresentações, leia e siga `.agents/skills/apresentacao-inteli/SKILL.md` e `design-system/README.md`. Na capa, o título é `M16 - <tema>` e o autor, `Prof. Nicola`.
 

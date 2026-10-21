@@ -1,6 +1,6 @@
 # Inteli · M16 Concorrência
 
-Apresentações e recursos das aulas de concorrência de Rodrigo Nicola, no módulo 16 da graduação do Inteli.
+Apresentações, roteiros e referências das aulas de concorrência de Rodrigo Nicola, no módulo 16 da graduação do Inteli.
 
 **Site:** https://rmnicola.github.io/inteli-m16-concorrencia/, publicado automaticamente a cada push em `main`.
 
@@ -22,7 +22,7 @@ tools/gerar_site.py                      gera _site/ a partir de curso.json
 
 1. Edite o deck da aula e gere o build:
    `node design-system/tools/deck.mjs aulas/introducao-a-concorrencia/apresentacao/deck.html`
-2. Registre a aula em `curso.json`, com a apresentação e os `recursos`. Uma aula que ainda não tem material leva `"em_breve": true`.
+2. Registre a aula em `curso.json`, com a apresentação, os `roteiros` e as `referencias`. Uma aula que ainda não tem material leva `"em_breve": true`.
 3. Veja a prévia local: `python3 tools/gerar_site.py --previa` e abra http://localhost:8000
 4. Para publicar, faça commit e push em `main`.
 

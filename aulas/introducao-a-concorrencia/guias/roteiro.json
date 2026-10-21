@@ -1,0 +1,112 @@
+{
+  "titulo": "Roteiro: caçando bugs com o helgrind",
+  "resumo": "As questões do homework do capítulo 27 do OSTEP: cinco programas pequenos com threads, um detector de erros de concorrência (o helgrind) e uma pergunta em cada passo. Anote as respostas.",
+  "contexto": "Antes, faça o [setup do ambiente](../setup/). Todos os comandos rodam na pasta `ostep-homework/threads-api` (no macOS, dentro do contêiner). Para ler um programa, abra-o no editor ou use `cat`. Os programas usam os wrappers de `common_threads.h`, como `Pthread_create`, que chamam a função da biblioteca e conferem o retorno.",
+  "passos": [
+    {
+      "titulo": "Uma corrida de dados",
+      "texto": [
+        "Leia `main-race.c` e encontre a corrida de dados (ela é bem visível).",
+        "Rode o helgrind. Ele aponta as linhas certas do código? Que outras informações ele dá?"
+      ],
+      "comandos": "cat main-race.c\nvalgrind --tool=helgrind ./main-race",
+      "depois": [
+        "Procure as linhas `Possible data race` e, logo abaixo delas, o arquivo e a linha (`main-race.c:N`). O `Locks held: none` diz quais locks a thread segurava naquele acesso."
+      ]
+    },
+    {
+      "titulo": "Tirando uma das linhas",
+      "texto": [
+        "Apague uma das duas linhas que causam a corrida, compile de novo e rode o helgrind. O que acontece?"
+      ],
+      "comandos": "make\nvalgrind --tool=helgrind ./main-race",
+      "aviso": "Para voltar ao original de qualquer arquivo: `git checkout -- main-race.c`."
+    },
+    {
+      "titulo": "Protegendo com um lock",
+      "texto": [
+        "Volte ao original e proteja com um lock só uma das duas atualizações da variável compartilhada. Depois, as duas. O que o helgrind diz em cada caso?"
+      ],
+      "codigo": "pthread_mutex_t m = PTHREAD_MUTEX_INITIALIZER;   // global, fora das funções\n\nPthread_mutex_lock(&m);\nbalance++;\nPthread_mutex_unlock(&m);",
+      "arquivo": "main-race.c",
+      "depois": [
+        "A cada mudança, compile (`make`) e rode o helgrind de novo."
+      ]
+    },
+    {
+      "titulo": "Um deadlock",
+      "texto": [
+        "Leia `main-deadlock.c`. Esse código tem um problema chamado *deadlock*, que vamos estudar com calma num capítulo próximo. Você consegue ver qual é o problema? Pense em duas threads, cada uma segurando um lock e esperando o lock da outra."
+      ],
+      "comandos": "cat main-deadlock.c"
+    },
+    {
+      "titulo": "O helgrind e o deadlock",
+      "texto": [
+        "Rode o helgrind em `main-deadlock`. O que ele relata?"
+      ],
+      "comandos": "valgrind --tool=helgrind ./main-deadlock",
+      "aviso": "O deadlock depende do escalonamento, então quase nunca acontece de verdade numa execução. Se o programa travar, aperte Ctrl+C."
+    },
+    {
+      "titulo": "Um lock global",
+      "texto": [
+        "Leia `main-deadlock-global.c`. Ele tem o mesmo problema de `main-deadlock.c`?",
+        "Rode o helgrind. Ele deveria relatar o mesmo erro? O que isso diz sobre ferramentas como o helgrind?"
+      ],
+      "comandos": "cat main-deadlock-global.c\nvalgrind --tool=helgrind ./main-deadlock-global"
+    },
+    {
+      "titulo": "Esperar com uma variável",
+      "texto": [
+        "Leia `main-signal.c`. Ele usa a variável `done` para a thread filha avisar que terminou e a mãe poder continuar. Por que esse código é ineficiente? Em que a mãe passa o tempo, principalmente se a filha demorar para terminar?"
+      ],
+      "comandos": "cat main-signal.c"
+    },
+    {
+      "titulo": "O helgrind e a espera ocupada",
+      "texto": [
+        "Rode o helgrind em `main-signal`. O que ele relata? O código está correto?"
+      ],
+      "comandos": "valgrind --tool=helgrind ./main-signal"
+    },
+    {
+      "titulo": "Esperar com uma variável de condição",
+      "texto": [
+        "Leia `main-signal-cv.c`, uma versão que usa uma variável de condição (e o lock associado a ela) para avisar. Por que ela é melhor que a anterior? É por correção, por desempenho ou pelos dois?"
+      ],
+      "comandos": "cat main-signal-cv.c",
+      "depois": [
+        "Na seção 27.4 do OSTEP (pthread_cond_wait e pthread_cond_signal), compare `signal_wait` e `signal_done` com os dois trechos de código do livro: o de quem espera e o de quem avisa."
+      ]
+    },
+    {
+      "titulo": "O helgrind e a variável de condição",
+      "texto": [
+        "Rode o helgrind em `main-signal-cv`. Ele relata algum erro?"
+      ],
+      "comandos": "valgrind --tool=helgrind ./main-signal-cv"
+    },
+    {
+      "titulo": "Para pensar",
+      "texto": [
+        "No lock global e na espera ocupada, o que o helgrind disse batia com o que você concluiu lendo o código? Em que tipo de erro uma ferramenta assim ajuda, e em que ela pode enganar?",
+        "Se o helgrind não relata nada, o programa está correto?"
+      ]
+    }
+  ],
+  "problemas": [
+    [
+      "`./main-race: No such file or directory`",
+      "Os programas não foram compilados, ou você está em outra pasta. Entre em `ostep-homework/threads-api` e rode `make`."
+    ],
+    [
+      "`make: Nothing to be done for 'all'.`",
+      "Nenhum arquivo mudou desde a última compilação. Se você editou um arquivo, salve-o antes de rodar o `make`."
+    ],
+    [
+      "A saída do helgrind é longa demais",
+      "Ela vem na saída de erro. Para ler com calma: `valgrind --tool=helgrind ./main-race 2>&1 | less` (q sai)."
+    ]
+  ]
+}

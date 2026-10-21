@@ -1,0 +1,135 @@
+{
+  "titulo": "Setup do ambiente",
+  "variantes": [
+    {
+      "id": "linux",
+      "rotulo": "Linux"
+    },
+    {
+      "id": "windows",
+      "rotulo": "Windows"
+    },
+    {
+      "id": "macos",
+      "rotulo": "macOS"
+    }
+  ],
+  "resumo": "Preparar, no {app}, o ambiente do roteiro: o compilador C, o valgrind (com o helgrind) e os programas do homework do capítulo 27 do OSTEP.",
+  "contexto": "O helgrind só roda em Linux. No Windows, o caminho é o WSL, um Ubuntu dentro do Windows; no macOS, um contêiner Ubuntu no Docker. Testamos os passos com Ubuntu 24.04 e valgrind 3.22.",
+  "passos": [
+    {
+      "titulo": "Abra um terminal Linux",
+      "variantes": {
+        "linux": {
+          "texto": [
+            "Abra o terminal. Os comandos abaixo usam o `apt` (Ubuntu e Debian). Em outra distribuição, instale os mesmos pacotes com o gerenciador dela: no Arch, `sudo pacman -S base-devel valgrind git`; no Fedora, `sudo dnf install gcc make valgrind git`."
+          ]
+        },
+        "windows": {
+          "texto": [
+            "Abra o **PowerShell como administrador** e instale o WSL com o Ubuntu. Reinicie o computador quando ele pedir."
+          ],
+          "comandos": "wsl --install -d Ubuntu-24.04",
+          "depois": [
+            "Depois de reiniciar, abra o aplicativo **Ubuntu** no menu Iniciar. Na primeira vez, ele pede um nome de usuário e uma senha para o Linux (não precisam ser os do Windows). Todos os próximos comandos são nesse terminal do Ubuntu, não no PowerShell."
+          ]
+        },
+        "macos": {
+          "texto": [
+            "Instale o [Docker Desktop](https://www.docker.com/products/docker-desktop/) e abra-o: o ícone da baleia precisa aparecer na barra de menus.",
+            "No Terminal, crie uma pasta para a disciplina e entre nela."
+          ],
+          "comandos": "mkdir -p ~/m16 && cd ~/m16",
+          "aviso": "O valgrind não roda no macOS atual, nem em Intel nem em Apple Silicon. Por isso o contêiner: ele é um Ubuntu de verdade, e a pasta `~/m16` fica visível nos dois lados."
+        }
+      }
+    },
+    {
+      "titulo": "Instale o compilador e o valgrind",
+      "variantes": {
+        "linux": {
+          "comandos": "sudo apt update\nsudo apt install -y build-essential valgrind git"
+        },
+        "windows": {
+          "comandos": "sudo apt update\nsudo apt install -y build-essential valgrind git"
+        },
+        "macos": {
+          "texto": [
+            "Crie o contêiner `ostep`, com a pasta `~/m16` montada em `/work` (primeiro bloco). O comando abre um terminal dentro dele: o prompt muda para algo como `root@3f2a...:/work#`.",
+            "Dentro do contêiner, instale os pacotes (segundo bloco), sem `sudo`: lá você já é root."
+          ],
+          "comandos": "docker run -it --name ostep -v \"$PWD\":/work -w /work ubuntu:24.04 bash",
+          "depois": [
+            "Daqui em diante, todos os comandos são dentro do contêiner."
+          ],
+          "codigo": "apt-get update\napt-get install -y build-essential valgrind git",
+          "arquivo": "Dentro do contêiner"
+        }
+      }
+    },
+    {
+      "titulo": "Confira as versões",
+      "comandos": "gcc --version | head -1\nvalgrind --version",
+      "saida": "gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0\nvalgrind-3.22.0",
+      "saida_titulo": "Saída esperada (as versões podem variar)"
+    },
+    {
+      "titulo": "Baixe o homework e compile",
+      "texto": [
+        "Os programas do roteiro estão no repositório de homeworks do OSTEP, na pasta `threads-api`."
+      ],
+      "comandos": "git clone https://github.com/remzi-arpacidusseau/ostep-homework.git\ncd ostep-homework/threads-api\nmake",
+      "saida": "gcc -o main-race main-race.c -Wall -pthread -g\ngcc -o main-deadlock main-deadlock.c -Wall -pthread -g\ngcc -o main-deadlock-global main-deadlock-global.c -Wall -pthread -g\ngcc -o main-signal main-signal.c -Wall -pthread -g\ngcc -o main-signal-cv main-signal-cv.c -Wall -pthread -g",
+      "depois": [
+        "O `-pthread` liga a biblioteca de threads; o `-g` guarda os números de linha, que o helgrind usa para apontar onde está o problema."
+      ]
+    },
+    {
+      "titulo": "Teste o helgrind",
+      "texto": [
+        "Rode o helgrind num programa sem erros. A última linha é a que importa."
+      ],
+      "comandos": "valgrind --tool=helgrind ./main-signal-cv",
+      "saida": "this should print first\nthis should print last\n...\n==1234== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 7 from 7)",
+      "depois": [
+        "O número no começo das linhas (`==1234==`) é o PID e muda a cada execução. Se você chegou aqui, o ambiente está pronto: siga para o [roteiro](../roteiro/)."
+      ]
+    }
+  ],
+  "problemas": [
+    [
+      "`valgrind: command not found` ou `make: gcc: No such file or directory`",
+      "A instalação do passo 2 não terminou. Rode de novo os comandos de instalação e confira as mensagens de erro."
+    ],
+    [
+      "No PowerShell, `wsl --install` diz que a virtualização está desligada",
+      "Ative a virtualização (Intel VT-x ou AMD-V/SVM) na BIOS do computador e rode o comando de novo.",
+      "windows"
+    ],
+    [
+      "`Cannot connect to the Docker daemon`",
+      "O Docker Desktop não está aberto. Abra o aplicativo, espere a baleia parar de se mexer e rode o comando de novo.",
+      "macos"
+    ],
+    [
+      "`docker: Error response from daemon: Conflict. The container name \"/ostep\" is already in use`",
+      "O contêiner já existe (de uma vez anterior). Entre nele com `docker start -ai ostep`, sem criar outro.",
+      "macos"
+    ],
+    [
+      "Fechei o terminal do contêiner. Como volto?",
+      "No Terminal do macOS: `docker start -ai ostep`. Os pacotes instalados e a pasta `/work` continuam lá.",
+      "macos"
+    ],
+    [
+      "Quero editar os arquivos no VS Code",
+      "Abra a pasta `~/m16/ostep-homework/threads-api` no VS Code do macOS: é a mesma pasta que o contêiner vê em `/work`. Compile e rode sempre dentro do contêiner.",
+      "macos"
+    ],
+    [
+      "Quero editar os arquivos no VS Code",
+      "Instale a extensão **WSL** no VS Code e, no terminal do Ubuntu, dentro da pasta `threads-api`, rode `code .`.",
+      "windows"
+    ]
+  ]
+}

@@ -1,0 +1,104 @@
+{
+  "titulo": "Gabarito do roteiro",
+  "oculto": true,
+  "resumo": "Respostas ao roteiro do helgrind (homework do cap. 27 do OSTEP), na ordem dos passos: o comando, o trecho da saída que importa e a resposta. Saídas obtidas com Ubuntu 24.04, gcc 13.3 e valgrind 3.22; os endereços e o número entre `==` mudam a cada máquina e execução.",
+  "contexto": "Página para o professor: não aparece na página da aula. O repositório é público, então quem conhecer o endereço chega a ela.",
+  "passos": [
+    {
+      "titulo": "Uma corrida de dados",
+      "comandos": "valgrind --tool=helgrind ./main-race",
+      "saida": "==4270== Possible data race during read of size 4 at 0x10C014 by thread #1\n==4270== Locks held: none\n==4270==    at 0x109236: main (main-race.c:15)\n==4270==\n==4270== This conflicts with a previous write of size 4 by thread #2\n==4270== Locks held: none\n==4270==    at 0x1091BE: worker (main-race.c:8)\n...\n==4270==  Address 0x10c014 is 0 bytes inside data symbol \"balance\"\n...\n==4270== Possible data race during write of size 4 at 0x10C014 by thread #1\n...\n==4270== ERROR SUMMARY: 2 errors from 2 contexts (suppressed: 0 from 0)",
+      "saida_titulo": "Saída (trechos)",
+      "depois": [
+        "**Sim, aponta as linhas certas:** os dois `balance++` sem proteção, na linha 8 (`worker`) e na 15 (`main`). São dois erros porque `balance++` é uma leitura e uma escrita, e as duas conflitam com a escrita da outra thread.",
+        "**Outras informações:** qual thread fez cada acesso (#1 é a main, #2 a criada, com a pilha de onde ela foi criada no anúncio), o tipo e o tamanho do acesso (leitura ou escrita de 4 bytes), os locks que cada thread segurava (`Locks held: none`) e o nome da variável (`balance`)."
+      ]
+    },
+    {
+      "titulo": "Tirando uma das linhas",
+      "comandos": "# apague o balance++ de worker (linha 8)\nmake\nvalgrind --tool=helgrind ./main-race",
+      "saida": "==4274== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)",
+      "depois": [
+        "Nenhum erro: com uma linha só, só uma thread acessa `balance` e não há corrida. O mesmo vale apagando a linha 15. O programa fica \"correto\", mas não faz mais o que fazia: a corrida se resolve protegendo o acesso, não removendo o trabalho."
+      ]
+    },
+    {
+      "titulo": "Protegendo com um lock",
+      "texto": [
+        "Com o lock só em volta do `balance++` de `worker`:"
+      ],
+      "comandos": "make\nvalgrind --tool=helgrind ./main-race",
+      "saida": "==4284== Possible data race during read of size 4 at 0x10C040 by thread #1\n==4284== Locks held: none\n==4284==    at 0x1092F0: main (main-race.c:18)\n==4284==\n==4284== This conflicts with a previous write of size 4 by thread #2\n==4284== Locks held: 1, at address 0x10C060\n==4284==    at 0x10923D: worker (main-race.c:10)\n...\n==4284== ERROR SUMMARY: 2 errors from 2 contexts (suppressed: 0 from 0)",
+      "saida_titulo": "Lock em uma atualização (trechos)",
+      "depois": [
+        "**Lock em uma só:** continuam os dois erros. Agora o helgrind mostra que a worker segurava um lock (`Locks held: 1`) e a main não (`Locks held: none`). Um lock só protege se **todos** os acessos à variável o usam.",
+        "**Lock nas duas:** nenhum erro (`ERROR SUMMARY: 0 errors from 0 contexts`). Os dois acessos estão na mesma seção crítica, protegida pelo mesmo lock."
+      ]
+    },
+    {
+      "titulo": "Um deadlock",
+      "comandos": "cat main-deadlock.c",
+      "depois": [
+        "A thread com `arg == 0` pega `m1` e depois `m2`; a com `arg == 1` pega `m2` e depois `m1`. Se a primeira pegar `m1` e, antes de pegar `m2`, a segunda pegar `m2`, cada uma fica esperando o lock que a outra segura, para sempre: deadlock. Ele depende do escalonamento; rodando o programa sem o helgrind, ele quase sempre termina (nos nossos testes, terminou nas três execuções)."
+      ]
+    },
+    {
+      "titulo": "O helgrind e o deadlock",
+      "comandos": "valgrind --tool=helgrind ./main-deadlock",
+      "saida": "==4300== Thread #3: lock order \"0x10C040 before 0x10C080\" violated\n==4300==\n==4300== Observed (incorrect) order is: acquisition of lock at 0x10C080\n==4300==    by 0x109288: worker (main-deadlock.c:13)\n==4300==  followed by a later acquisition of lock at 0x10C040\n==4300==    by 0x1092C3: worker (main-deadlock.c:14)\n==4300==\n==4300== Required order was established by acquisition of lock at 0x10C040\n==4300==    by 0x10920E: worker (main-deadlock.c:10)\n==4300==  followed by a later acquisition of lock at 0x10C080\n==4300==    by 0x109249: worker (main-deadlock.c:11)\n...\n==4300==  Address 0x10c040 is 0 bytes inside data symbol \"m1\"\n==4300==  Address 0x10c080 is 0 bytes inside data symbol \"m2\"\n...\n==4300== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 8 from 8)",
+      "saida_titulo": "Saída (trechos)",
+      "depois": [
+        "Uma **violação de ordem de locks**: a primeira thread estabeleceu a ordem `m1` antes de `m2` (linhas 10 e 11), e a thread #3 pegou na ordem inversa (linhas 13 e 14). O helgrind não precisa que o deadlock aconteça: ele avisa que a ordem inconsistente torna o deadlock possível."
+      ]
+    },
+    {
+      "titulo": "Um lock global",
+      "comandos": "valgrind --tool=helgrind ./main-deadlock-global",
+      "saida": "==4303== Thread #3: lock order \"0x10C080 before 0x10C0C0\" violated\n...\n==4303==    by 0x1092C3: worker (main-deadlock-global.c:15)\n==4303==    by 0x1092FE: worker (main-deadlock-global.c:16)\n...\n==4303==    by 0x109249: worker (main-deadlock-global.c:12)\n==4303==    by 0x109284: worker (main-deadlock-global.c:13)\n...\n==4303== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 8 from 8)",
+      "saida_titulo": "Saída (trechos)",
+      "depois": [
+        "**Não tem o mesmo problema.** O lock `g` envolve tudo: só uma thread por vez entra na região que pega `m1` e `m2`, então as duas nunca seguram um lock cada uma ao mesmo tempo, e o deadlock é impossível.",
+        "**O helgrind relata o mesmo erro, e não deveria:** é um falso positivo. Ele vê a ordem `m1`/`m2` invertida entre as threads, mas não entende que `g` torna a inversão inofensiva. Ferramentas como o helgrind usam heurísticas: ajudam muito a achar problemas, mas cada aviso precisa ser conferido no código."
+      ]
+    },
+    {
+      "titulo": "Esperar com uma variável",
+      "comandos": "cat main-signal.c",
+      "depois": [
+        "A mãe fica girando em `while (done == 0) ;`, a **espera ocupada** (spin): gasta a CPU inteira só para conferir a variável, e quanto mais a filha demorar, mais CPU é desperdiçada. Numa máquina com uma CPU só, é pior ainda: a mãe ocupa o tempo que a filha precisaria para terminar."
+      ]
+    },
+    {
+      "titulo": "O helgrind e a espera ocupada",
+      "comandos": "valgrind --tool=helgrind ./main-signal\n# para ver o problema: compile com otimização e rode (Ctrl+C para sair)\ngcc -O2 -pthread -o main-signal-o2 main-signal.c && ./main-signal-o2",
+      "saida": "==4284== Possible data race during read of size 4 at 0x10C014 by thread #1\n==4284== Locks held: none\n==4284==    at 0x109245: main (main-signal.c:16)\n==4284==\n==4284== This conflicts with a previous write of size 4 by thread #2\n==4284== Locks held: none\n==4284==    at 0x1091C8: worker (main-signal.c:9)\n...\n==4284==  Address 0x10c014 is 0 bytes inside data symbol \"done\"\n...\nthis should print first\nthis should print last\n...\n==4284== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 96 from 27)",
+      "saida_titulo": "Saída (trechos)",
+      "depois": [
+        "Uma **corrida de dados em `done`**: a main lê (linha 16) e a filha escreve (linha 9), sem lock.",
+        "**O código não é correto**, embora as mensagens saiam na ordem certa nesta execução. Pelo modelo de memória do C, uma corrida de dados é comportamento indefinido, e o compilador pode supor que `done` não muda dentro do laço. Compilado com `gcc -O2`, ele lê `done` uma vez só e o laço vira infinito: testamos, e o programa trava. Aqui o aviso do helgrind não é falso positivo."
+      ]
+    },
+    {
+      "titulo": "Esperar com uma variável de condição",
+      "comandos": "cat main-signal-cv.c",
+      "depois": [
+        "**Pelos dois motivos.** Desempenho: a mãe dorme em `Pthread_cond_wait` em vez de girar, e a CPU fica livre para a filha. Correção: `done` só é lido e escrito com o lock seguro, então não há corrida de dados. E a espera usa `while (s->done == 0)`, não `if`, como o cap. 27 recomenda: acordar é só um sinal de que algo pode ter mudado."
+      ]
+    },
+    {
+      "titulo": "O helgrind e a variável de condição",
+      "comandos": "valgrind --tool=helgrind ./main-signal-cv",
+      "saida": "this should print first\nthis should print last\n...\n==4288== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 7 from 7)",
+      "depois": [
+        "Nenhum erro. Os 7 suprimidos são avisos conhecidos de dentro da própria biblioteca (glibc), que o valgrind esconde de propósito."
+      ]
+    },
+    {
+      "titulo": "Para pensar",
+      "depois": [
+        "**O helgrind bateu com a leitura do código?** Na espera ocupada, sim: a corrida é real. No lock global, não: o aviso de ordem de locks é um falso positivo. Ferramentas assim são ótimas para apontar onde olhar (corridas de dados e ordens de lock inconsistentes, com arquivo e linha), mas não entendem a lógica do programa e podem acusar o que não é erro.",
+        "**Sem aviso, o programa está correto?** Não necessariamente. O helgrind só analisa a execução que observou: um caminho que não rodou não é verificado, e há erros que ele não procura (um lock que protege a variável errada, uma condição de espera mal escrita). Zero erros é um bom sinal, não uma prova."
+      ]
+    }
+  ]
+}

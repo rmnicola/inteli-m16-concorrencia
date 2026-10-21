@@ -3,24 +3,48 @@
   "subtitulo": "Módulo 16 · Graduação",
   "instituicao": "Inteli",
   "professor": "Rodrigo Nicola",
-  "descricao": "Materiais das aulas: apresentações e recursos de apoio.",
+  "descricao": "Materiais das aulas: apresentações, roteiros e referências.",
   "repositorio": "https://github.com/rmnicola/inteli-m16-concorrencia",
   "aulas": [
     {
       "slug": "introducao-a-concorrencia",
       "pasta": "aulas/introducao-a-concorrencia",
       "titulo": "Introdução à concorrência",
+      "subtitulo": "Threads, corridas de dados e a API de threads POSIX",
+      "proposito": "Entender o que é uma thread, por que usá-la e o que dá errado quando threads compartilham dados.",
+      "objetivos": [
+        "**Explicar** o que uma thread compartilha com as outras do mesmo processo e o que é só dela.",
+        "**Reconhecer** uma race condition e a seção crítica que a causa, a partir da intercalação de instruções.",
+        "**Usar** `pthread_create`, `pthread_join`, locks e variáveis de condição, e o helgrind para encontrar erros."
+      ],
       "apresentacao": "apresentacao/dist/index.html",
-      "recursos": [
+      "roteiros": [
+        {
+          "rotulo": "Setup do ambiente",
+          "tipo": "passo a passo",
+          "link": "setup/"
+        },
+        {
+          "rotulo": "Roteiro: caçando bugs com o helgrind",
+          "tipo": "roteiro",
+          "link": "roteiro/"
+        }
+      ],
+      "referencias": [
         {
           "rotulo": "OSTEP, cap. 26: Concurrency and Threads",
-          "tipo": "PDF · referência",
+          "tipo": "PDF",
           "link": "https://pages.cs.wisc.edu/~remzi/OSTEP/threads-intro.pdf"
         },
         {
           "rotulo": "OSTEP, cap. 27: Thread API",
-          "tipo": "PDF · referência",
+          "tipo": "PDF",
           "link": "https://pages.cs.wisc.edu/~remzi/OSTEP/threads-api.pdf"
+        },
+        {
+          "rotulo": "Código do homework (threads-api)",
+          "tipo": "GitHub",
+          "link": "https://github.com/remzi-arpacidusseau/ostep-homework/tree/master/threads-api"
         }
       ]
     }
