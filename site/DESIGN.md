@@ -22,7 +22,7 @@ Modo escuro automático por `prefers-color-scheme`; `data-tema="claro"` no `<htm
 - `.topo` — marca à esquerda, navegação em texto à direita.
 - `.secao` — bloco com respiro e divisória superior.
 - `.rotulo` — metadado pequeno e esmaecido (data, instituição, tipo de arquivo).
-- `.aulas` / `.aula` — lista em linhas: data · título e subtítulo · estado. Com `.cursos` (índice do site), sem a coluna de data.
+- `.aulas` / `.aula` — lista em linhas: data (ou "Aula N") · título e subtítulo · estado.
 - `.cartao` — a ação principal da página (a apresentação): bloco escuro preenchido, título grande, seta que avança ao passar o cursor.
 - `.objetivos` — objetivos de aprendizagem como lista discreta dentro da introdução, sem título próprio.
 - `.arquivos` — lista de downloads com tipo à direita.

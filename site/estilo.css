@@ -131,14 +131,13 @@ h3 { font-size: var(--t-base); line-height: 1.6; }
 p { margin: 0.75rem 0 0; }
 .rotulo { color: var(--texto-fraco); font-size: var(--t-pequeno); }
 
-/* Lista de cursos (e de aulas, com a coluna de data) */
+/* Lista de aulas */
 .aulas { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--borda-fraca); }
 .aula { border-bottom: 1px solid var(--borda-fraca); }
 .aula > a, .aula > div {
   display: grid; grid-template-columns: 7rem 1fr auto; gap: 1.5rem; align-items: baseline;
   padding: 1.25rem 0.75rem; text-decoration: none; color: var(--texto);
 }
-.cursos .aula > a, .cursos .aula > div { grid-template-columns: 1fr auto; }
 .aula > a:hover { background: var(--fundo-fraco-hover); }
 .aula .data { color: var(--texto-fraco); font-size: var(--t-pequeno); }
 .aula .estado { font-size: var(--t-pequeno); color: var(--texto-fraco); }

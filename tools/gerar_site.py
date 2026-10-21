@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-"""Gera o site estático dos cursos a partir de cursos.json.
+"""Gera o site estático do curso a partir de curso.json, no esquema do site pecege-ons.
 
-Saída em _site/: index.html com a lista dos cursos visíveis e, para cada curso
-publicável, <slug>/ com a página do curso, a apresentação (copiada de
-<pasta>/<apresentacao>), os materiais e uma página de passo a passo para
-<pasta>/preparacao.json e para cada <pasta>/guias/<nome>.json (em <slug>/<nome>/). Curso com senha_sha256 ganha uma tela de senha.
-Cursos com "oculto": true não aparecem no índice e pedem aos buscadores que
-não os indexem; com "rascunho": true ficam fora do site publicado.
+Saída em _site/: index.html com a lista de aulas e, para cada aula publicável,
+aulas/<slug>/ com a página da aula (apresentação e recursos), a apresentação
+(copiada de <pasta>/<apresentacao>), os arquivos dos recursos e uma página de
+passo a passo para cada <pasta>/guias/<nome>.json (em aulas/<slug>/<nome>/).
+Aulas com "rascunho": true ficam fora do site publicado; com "em_breve": true,
+só aparecem anunciadas no índice. Com senha_sha256 no curso, as páginas ganham
+uma tela de senha.
 
     python tools/gerar_site.py            # gera _site/ como será publicado
     python tools/gerar_site.py --previa   # inclui rascunhos e serve em http://localhost:8000
@@ -115,21 +116,20 @@ def com_portao(html: str, curso: dict) -> str:
     return re.sub(r"(<body[^>]*>)", lambda m: m.group(1) + portao, html, count=1)
 
 
-def pagina(site: dict, titulo: str, corpo: str, raiz: str, oculto: bool = False) -> str:
+def pagina(site: dict, titulo: str, corpo: str, raiz: str) -> str:
     repo = escape(site["repositorio"])
-    robos = '<meta name="robots" content="noindex, nofollow">\n' if oculto else ""
     return f"""<!doctype html>
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-{robos}<title>{escape(titulo)}</title>
+<title>{escape(titulo)}</title>
 <meta name="description" content="{escape(site['descricao'])}">
 {FONTES}
 <link rel="stylesheet" href="{raiz}estilo.css">
 </head>
 <body>
 <div class="moldura">
-<header class="topo"><a class="marca" href="{raiz}">{escape(site['instituicao'])}</a><nav><a href="{raiz}">cursos</a><a href="{repo}"{NOVA_ABA}>github</a></nav></header>
+<header class="topo"><a class="marca" href="{raiz}">{escape(site['instituicao'])}</a><nav><a href="{raiz}">aulas</a><a href="{repo}"{NOVA_ABA}>github</a></nav></header>
 <main>
 {corpo}
 </main>
@@ -223,95 +223,69 @@ def tabela(dados: dict) -> str:
             f'</figcaption><div class="rolagem"><table><thead><tr>{cab}</tr></thead><tbody>{linhas}</tbody></table></div></figure>')
 
 
-def tem_material(curso: dict) -> bool:
-    return bool(curso.get("pasta") and (curso.get("apresentacao") or curso.get("materiais") or curso.get("aulas")))
+
+def publicavel(aula: dict) -> bool:
+    return bool(aula.get("pasta")) and not aula.get("em_breve") and (PREVIA or not aula.get("rascunho"))
 
 
-def publicavel(curso: dict) -> bool:
-    return tem_material(curso) and (PREVIA or not curso.get("rascunho"))
+def marcador(n: int, aula: dict) -> str:
+    """Coluna da esquerda da lista: a data, quando a aula tem uma; senão, o número."""
+    return data_curta(aula["data"]) if aula.get("data") else f"Aula {n}"
 
 
-def gerar_indice(site: dict) -> str:
+def gerar_indice(curso: dict) -> str:
     itens = []
-    for curso in site["cursos"]:
-        if curso.get("oculto"):
-            continue
-        miolo = f'<span><h3>{escape(curso["titulo"])}</h3><span class="sub">{escape(curso["subtitulo"])}</span></span>'
-        if publicavel(curso):
-            estado = "rascunho →" if curso.get("rascunho") else "abrir →"
-            itens.append(f'<li class="aula"><a href="{curso["slug"]}/">{miolo}<span class="estado">{estado}</span></a></li>')
+    for n, aula in enumerate(curso["aulas"], 1):
+        sub = f'<span class="sub">{escape(aula["subtitulo"])}</span>' if aula.get("subtitulo") else ""
+        miolo = f'<span class="data">{marcador(n, aula)}</span><span><h3>{escape(aula["titulo"])}</h3>{sub}</span>'
+        if publicavel(aula):
+            estado = "rascunho →" if aula.get("rascunho") else "abrir →"
+            itens.append(f'<li class="aula"><a href="aulas/{escape(aula["slug"])}/">{miolo}<span class="estado">{estado}</span></a></li>')
         else:
             itens.append(f'<li class="aula"><div>{miolo}<span class="estado">em breve</span></div></li>')
     corpo = f"""<section class="secao">
-<p class="rotulo">{escape(site['instituicao'])} · {escape(site['professor'])}</p>
-<h1>{escape(site['titulo'])}</h1>
-<p>{escape(site['descricao'])}</p>
+<p class="rotulo">{escape(curso['instituicao'])} · {escape(curso['professor'])}</p>
+<h1>{escape(curso['titulo'])}</h1>
+{f"<p>{escape(curso['subtitulo'])}</p>" if curso.get('subtitulo') else ''}
+<p>{escape(curso['descricao'])}</p>
 </section>
 <section class="secao">
-<h2>Cursos</h2>
-<ul class="aulas cursos">
+<h2>Aulas</h2>
+<ul class="aulas">
 {chr(10).join(itens)}
 </ul>
 </section>"""
-    return pagina(site, f"{site['titulo']} · {site['instituicao']}", corpo, "")
+    return pagina(curso, f"{curso['titulo']} · {curso['instituicao']}", corpo, "")
 
 
-def objetivos(curso: dict) -> str:
-    """Objetivos de aprendizagem como lista discreta dentro da introdução do curso."""
-    if not curso.get("objetivos"):
+def objetivos(aula: dict) -> str:
+    """Objetivos de aprendizagem como lista discreta dentro da introdução da aula."""
+    if not aula.get("objetivos"):
         return ""
-    itens = "".join(f"<li>{inline(o)}</li>" for o in curso["objetivos"])
+    itens = "".join(f"<li>{inline(o)}</li>" for o in aula["objetivos"])
     return f'<ul class="objetivos" aria-label="Objetivos de aprendizagem">{itens}</ul>'
 
 
-def conteudo_aula(item: dict) -> list[str]:
-    """As seções da apresentação e dos materiais de um curso ou de uma aula, uma seção para cada."""
-    partes = []
-    if item.get("apresentacao"):
-        partes.append(f'<section class="secao"><a class="cartao" href="apresentacao.html"{NOVA_ABA}><span><h3>Apresentação</h3>'
-                      f'<p>Abre no navegador · setas do teclado para navegar</p></span><span class="seta">→</span></a></section>')
-    if item.get("materiais"):
-        itens = "".join(
-            f'<li><a href="{escape(m["link"])}"{NOVA_ABA}>{escape(m["rotulo"])}</a><span class="rotulo">{escape(m["tipo"])}</span></li>'
-            if m.get("link") else
-            f'<li><a href="{escape(Path(m["arquivo"]).name)}" download{NOVA_ABA}>{escape(m["rotulo"])}</a><span class="rotulo">{escape(m["tipo"])}</span></li>'
-            for m in item["materiais"])
-        partes.append(f'<section class="secao"><h2>Materiais</h2><ul class="arquivos">{itens}</ul></section>')
-    return partes
-
-
-def gerar_curso(site: dict, curso: dict) -> str:
+def gerar_aula(curso: dict, n: int, aula: dict) -> str:
+    """Página de uma aula: a apresentação e os recursos dela."""
     partes = [f"""<section class="secao">
-<p class="rotulo">{escape(site['instituicao'])} · {escape(site['professor'])}</p>
-<h1>{escape(curso['titulo'])}</h1>
-<p>{escape(curso['subtitulo'])}</p>
-{f"<p>{inline(curso['proposito'])}</p>" if curso.get('proposito') else ''}
-{objetivos(curso)}
-</section>"""]
-    if curso.get("aulas"):
-        # Curso em aulas: a página do curso é o índice das aulas, como o índice do site; cada aula tem a própria página.
-        itens = []
-        for n, aula in enumerate(curso["aulas"], 1):
-            miolo = (f'<span class="data">Aula {n}</span>'
-                     f'<span><h3>{escape(aula["titulo"])}</h3>{f"""<span class="sub">{escape(aula["subtitulo"])}</span>""" if aula.get("subtitulo") else ""}</span>')
-            if aula.get("em_breve"):
-                itens.append(f'<li class="aula"><div>{miolo}<span class="estado">em breve</span></div></li>')
-            else:
-                itens.append(f'<li class="aula"><a href="{escape(aula["slug"])}/">{miolo}<span class="estado">abrir →</span></a></li>')
-        partes.append(f'<section class="secao"><h2>Aulas</h2><ul class="aulas">{"".join(itens)}</ul></section>')
-    else:
-        partes += conteudo_aula(curso)
-    return pagina(site, f"{curso['titulo']} · {site['instituicao']}", "\n".join(partes), "../", curso.get("oculto", False))
-
-
-def gerar_aula(site: dict, curso: dict, n: int, aula: dict) -> str:
-    """Página de uma aula de um curso em aulas: a apresentação e os materiais dela."""
-    topo = f"""<section class="secao">
-<p class="rotulo"><a href="../">{escape(curso['titulo'])}</a> · Aula {n}</p>
+<p class="rotulo">{marcador(n, aula)}{f" · {escape(aula['horario'])}" if aula.get('horario') else ''}</p>
 <h1>{escape(aula['titulo'])}</h1>
 {f"<p>{escape(aula['subtitulo'])}</p>" if aula.get('subtitulo') else ''}
-</section>"""
-    return pagina(site, f"{aula['titulo']} · {curso['titulo']}", "\n".join([topo, *conteudo_aula(aula)]), "../../", curso.get("oculto", False))
+{f"<p>{inline(aula['proposito'])}</p>" if aula.get('proposito') else ''}
+{objetivos(aula)}
+</section>"""]
+    if aula.get("apresentacao"):
+        partes.append(f'<section class="secao"><a class="cartao" href="apresentacao.html"{NOVA_ABA}><span><h3>Apresentação</h3>'
+                      f'<p>Abre no navegador · setas do teclado para navegar</p></span><span class="seta">→</span></a></section>')
+    if aula.get("recursos"):
+        itens = "".join(
+            f'<li><a href="{escape(r["link"])}"{NOVA_ABA}>{escape(r["rotulo"])}</a><span class="rotulo">{escape(r["tipo"])}</span></li>'
+            if r.get("link") else
+            f'<li><a href="{escape(Path(r["arquivo"]).name)}" download{NOVA_ABA}>{escape(r["rotulo"])}</a><span class="rotulo">{escape(r["tipo"])}</span></li>'
+            for r in aula["recursos"])
+        partes.append(f'<section class="secao"><h2>Recursos</h2><ul class="arquivos">{itens}</ul></section>')
+    return pagina(curso, f"{aula['titulo']} · {curso['titulo']}", "\n".join(partes), "../../")
 
 
 SELETOR = """<script>
@@ -333,7 +307,7 @@ SELETOR = """<script>
 </script>"""
 
 
-def gerar_preparacao(site: dict, curso: dict, prep: dict) -> str:
+def gerar_preparacao(curso: dict, aula: dict, prep: dict) -> str:
     """Passo a passo no padrão Steps do Starlight: círculos numerados ligados por uma linha.
 
     Com "variantes" ([{"id", "rotulo"}], por exemplo um aplicativo por variante), a página ganha um seletor ao lado
@@ -383,7 +357,7 @@ def gerar_preparacao(site: dict, curso: dict, prep: dict) -> str:
         estilo = (f'<style>.variante {{ display: none; }} html:not([data-app]) .variante[data-variante="{primeira}"] {{ display: block; }}'
                   f'{regras}</style>')
     topo = f"""<section class="secao">
-<p class="rotulo"><a href="../">{escape(curso['titulo'])}</a></p>
+<p class="rotulo"><a href="../">{escape(aula['titulo'])}</a></p>
 <div class="titulo-guia"><h1>{escape(prep['titulo'])}</h1>{seletor}</div>
 {por_variante(lambda d: f"<p>{inline(d['resumo'])}</p>", {"resumo": prep["resumo"]})}
 {f"<p>{inline(prep['contexto'])}</p>" if prep.get('contexto') else ''}
@@ -402,7 +376,8 @@ def gerar_preparacao(site: dict, curso: dict, prep: dict) -> str:
         partes.append(f'<section class="secao"><h2>No dia da aula</h2>{comando(prep["dia_da_aula"])}</section>')
     if variantes:
         partes.append(SELETOR)
-    return pagina(site, f"{prep['titulo']} · {curso['titulo']}", "\n".join(partes), "../../", curso.get("oculto", False))
+    return pagina(curso, f"{prep['titulo']} · {aula['titulo']}", "\n".join(partes), "../../../")
+
 
 
 def servir(porta: int) -> None:
@@ -412,61 +387,43 @@ def servir(porta: int) -> None:
         servidor.serve_forever()
 
 
+
 def main() -> None:
     global PREVIA
-    parser = argparse.ArgumentParser(description="Gera o site dos cursos em _site/.")
+    parser = argparse.ArgumentParser(description="Gera o site do curso em _site/.")
     parser.add_argument("--previa", action="store_true", help="inclui rascunhos e serve o site localmente")
     parser.add_argument("--porta", type=int, default=8000)
     args = parser.parse_args()
     PREVIA = args.previa
-    site = json.loads((RAIZ / "cursos.json").read_text(encoding="utf-8"))
-    slugs = [c["slug"] for c in site["cursos"]]
+    curso = json.loads((RAIZ / "curso.json").read_text(encoding="utf-8"))
+    slugs = [a["slug"] for a in curso["aulas"]]
     if len(slugs) != len(set(slugs)):
-        raise SystemExit("cursos.json: slugs repetidos")
+        raise SystemExit("curso.json: slugs de aula repetidos")
     if SAIDA.exists():
         shutil.rmtree(SAIDA)
     SAIDA.mkdir()
     shutil.copy(RAIZ / "site" / "estilo.css", SAIDA / "estilo.css")
     (SAIDA / ".nojekyll").touch()
-    (SAIDA / "index.html").write_text(gerar_indice(site), encoding="utf-8")
-    for curso in site["cursos"]:
-        if not publicavel(curso):
+    (SAIDA / "index.html").write_text(com_portao(gerar_indice(curso), curso), encoding="utf-8")
+    for n, aula in enumerate(curso["aulas"], 1):
+        if not publicavel(aula):
             continue
-        origem = RAIZ / curso["pasta"]
-        destino = SAIDA / curso["slug"]
-        # Um curso de fora da Educação Executiva (o de professores) troca o nome da instituição nas próprias páginas.
-        site_curso = {**site, "instituicao": curso.get("instituicao", site["instituicao"])}
+        origem = RAIZ / aula["pasta"]
+        destino = SAIDA / "aulas" / aula["slug"]
         destino.mkdir(parents=True)
-        if curso.get("apresentacao"):
-            shutil.copy(origem / curso["apresentacao"], destino / "apresentacao.html")
-        for item in curso.get("materiais", []):
+        if aula.get("apresentacao"):
+            shutil.copy(origem / aula["apresentacao"], destino / "apresentacao.html")
+        for item in aula.get("recursos", []):
             if item.get("arquivo"):
                 shutil.copy(origem / item["arquivo"], destino / Path(item["arquivo"]).name)
-        # Curso em aulas: cada aula publicada vira <slug>/<aula>/, com a apresentação e os materiais dela.
-        for n, aula in enumerate(curso.get("aulas", []), 1):
-            if aula.get("em_breve"):
-                continue
-            pasta_aula = destino / aula["slug"]
-            pasta_aula.mkdir()
-            if aula.get("apresentacao"):
-                shutil.copy(origem / aula["apresentacao"], pasta_aula / "apresentacao.html")
-            for item in aula.get("materiais", []):
-                if item.get("arquivo"):
-                    shutil.copy(origem / item["arquivo"], pasta_aula / Path(item["arquivo"]).name)
-            (pasta_aula / "index.html").write_text(gerar_aula(site_curso, curso, n, aula), encoding="utf-8")
-        # Passo a passo e roteiros: <pasta>/preparacao.json e cada <pasta>/guias/<nome>.json viram <slug>/<nome>/.
-        for guia in [origem / "preparacao.json", *sorted((origem / "guias").glob("*.json"))]:
-            if not guia.exists():
-                continue
+        # Passo a passo e roteiros: cada <pasta>/guias/<nome>.json vira aulas/<slug>/<nome>/.
+        for guia in sorted((origem / "guias").glob("*.json")):
             prep = json.loads(guia.read_text(encoding="utf-8"))
             (destino / guia.stem).mkdir()
-            (destino / guia.stem / "index.html").write_text(gerar_preparacao(site_curso, curso, prep), encoding="utf-8")
+            (destino / guia.stem / "index.html").write_text(gerar_preparacao(curso, aula, prep), encoding="utf-8")
         for html in destino.rglob("*.html"):
-            texto = com_portao(html.read_text(encoding="utf-8"), curso)
-            if curso.get("oculto") and 'name="robots"' not in texto:
-                texto = re.sub(r"(<head[^>]*>)", r'\1<meta name="robots" content="noindex, nofollow">', texto, count=1)
-            html.write_text(texto, encoding="utf-8")
-        (destino / "index.html").write_text(com_portao(gerar_curso(site_curso, curso), curso), encoding="utf-8")
+            html.write_text(com_portao(html.read_text(encoding="utf-8"), curso), encoding="utf-8")
+        (destino / "index.html").write_text(com_portao(gerar_aula(curso, n, aula), curso), encoding="utf-8")
     print(f"site gerado em {SAIDA}")
     if PREVIA:
         servir(args.porta)

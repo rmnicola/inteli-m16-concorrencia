@@ -1,0 +1,28 @@
+{
+  "titulo": "Concorrência",
+  "subtitulo": "Módulo 16 · Graduação",
+  "instituicao": "Inteli",
+  "professor": "Rodrigo Nicola",
+  "descricao": "Materiais das aulas: apresentações e recursos de apoio.",
+  "repositorio": "https://github.com/rmnicola/inteli-m16-concorrencia",
+  "aulas": [
+    {
+      "slug": "introducao-a-concorrencia",
+      "pasta": "aulas/introducao-a-concorrencia",
+      "titulo": "Introdução à concorrência",
+      "apresentacao": "apresentacao/dist/index.html",
+      "recursos": [
+        {
+          "rotulo": "OSTEP, cap. 26: Concurrency and Threads",
+          "tipo": "PDF · referência",
+          "link": "https://pages.cs.wisc.edu/~remzi/OSTEP/threads-intro.pdf"
+        },
+        {
+          "rotulo": "OSTEP, cap. 27: Thread API",
+          "tipo": "PDF · referência",
+          "link": "https://pages.cs.wisc.edu/~remzi/OSTEP/threads-api.pdf"
+        }
+      ]
+    }
+  ]
+}
