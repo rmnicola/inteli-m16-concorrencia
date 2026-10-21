@@ -1,0 +1,22 @@
+{
+  "titulo": "Módulo 16",
+  "instituicao": "Inteli",
+  "professor": "Rodrigo Nicola",
+  "descricao": "Materiais das aulas de Rodrigo Nicola no módulo 16 da graduação do Inteli: apresentações e materiais de apoio.",
+  "repositorio": "https://github.com/rmnicola/inteli-m16-concorrencia",
+  "cursos": [
+    {
+      "slug": "concorrencia",
+      "pasta": "concorrencia",
+      "titulo": "Concorrência",
+      "subtitulo": "Módulo 16 · Graduação",
+      "aulas": [
+        {
+          "slug": "introducao-a-concorrencia",
+          "titulo": "Introdução à concorrência",
+          "apresentacao": "introducao-a-concorrencia/apresentacao/dist/index.html"
+        }
+      ]
+    }
+  ]
+}

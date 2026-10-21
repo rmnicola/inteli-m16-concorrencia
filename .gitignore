@@ -1,0 +1,21 @@
+# Gerados localmente
+_site/
+__pycache__/
+**/qa/
+**/dist/*.pdf
+
+# Fora do repositório público: referências, skills locais e config do OpenCode
+ref-enade/
+.agents/skills/lbl/
+.opencode/
+header.txt
+
+# Dados de turma: nunca publicar
+**/alunos.md
+**/questionario-respostas.md
+*.xlsx
+
+# Documentos internos e templates
+*.docx
+*.pptx
+*.eml

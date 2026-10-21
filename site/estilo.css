@@ -1,0 +1,247 @@
+/* Design system das páginas de curso — Rodrigo Nicola.
+   Minimalista, monoespaçado, coluna emoldurada por linhas finas.
+   Tokens primeiro; componentes usam apenas tokens. Ver site/DESIGN.md. */
+
+:root {
+  --fundo: #fdfcfc;
+  --fundo-fraco: #f8f7f7;
+  --fundo-fraco-hover: #f0eeee;
+  --fundo-forte: #201d1d;
+  --fundo-forte-hover: #3a3434;
+  --texto: #555454;
+  --texto-fraco: #6d6b6b;
+  --texto-forte: #201d1d;
+  --texto-invertido: #fdfcfc;
+  --texto-invertido-fraco: #c9c3c3;
+  --borda: #8f8e8d;
+  --borda-fraca: rgba(15, 0, 0, 0.12);
+  --destaque: #cd0028;
+  --selecao: #f8f6c2;
+
+  --fonte: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --t-pequeno: 0.9375rem;
+  --t-base: 1rem;
+  --t-titulo: 1.75rem;
+  --entrelinha: 2;
+
+  --largura: 60rem;
+  --respiro-x: 5rem;
+  --respiro-y: 4rem;
+  --raio: 4px;
+
+  /* Código: paleta inspirada no Night Owl (Starlight / Expressive Code) */
+  --codigo-fundo: #fbfbfb;
+  --codigo-barra: #f0efef;
+  --codigo-borda: #e2e0e0;
+  --codigo-texto: #403f53;
+  --codigo-titulo: #6a6a7c;
+  --codigo-controle: #919090;
+  --sx-cmd: #2f62c9;
+  --sx-kw: #8a3fb8;
+  --sx-flag: #08787c;
+  --sx-str: #a8473f;
+  --sx-var: #a10a7f;
+  --sx-op: #8a3fb8;
+  --sx-num: #a10a7f;
+  --sx-com: #6f7381;
+  --sx-ok: #08805e;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema="claro"]) {
+    --fundo: #131010;
+    --fundo-fraco: #1b1818;
+    --fundo-fraco-hover: #282424;
+    --fundo-forte: #f1eded;
+    --fundo-forte-hover: #ddd8d8;
+    --texto: #b7b1b1;
+    --texto-fraco: #8f8b8b;
+    --texto-forte: #f1eded;
+    --texto-invertido: #131010;
+    --texto-invertido-fraco: #5a5555;
+    --borda: #696565;
+    --borda-fraca: #3d3838;
+    --destaque: #ff4d6d;
+    --selecao: #4a4a1f;
+    --codigo-fundo: #1c1919;
+    --codigo-barra: #242020;
+    --codigo-borda: #3d3838;
+    --codigo-texto: #d6deeb;
+    --codigo-titulo: #a09a9a;
+    --codigo-controle: #6a6666;
+    --sx-cmd: #82aaff;
+    --sx-kw: #c792ea;
+    --sx-flag: #7fdbca;
+    --sx-str: #ecc48d;
+    --sx-var: #f78c6c;
+    --sx-op: #c792ea;
+    --sx-num: #f78c6c;
+    --sx-com: #7a8b8b;
+    --sx-ok: #addb67;
+  }
+}
+
+@media (max-width: 60rem) {
+  :root { --respiro-x: 1.5rem; --respiro-y: 3rem; }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+::selection { background: var(--selecao); color: var(--texto-forte); }
+
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--fundo);
+  color: var(--texto);
+  font: 400 var(--t-base)/var(--entrelinha) var(--fonte);
+}
+
+a { color: var(--texto-forte); text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+a:hover { text-decoration-thickness: 2px; }
+:focus-visible { outline: 2px solid var(--texto-forte); outline-offset: 3px; }
+
+/* Moldura: coluna central delimitada por linhas finas */
+.moldura {
+  max-width: var(--largura);
+  margin: 0 auto;
+  min-height: 100vh;
+  border-left: 1px solid var(--borda-fraca);
+  border-right: 1px solid var(--borda-fraca);
+}
+.secao { padding: var(--respiro-y) var(--respiro-x); border-top: 1px solid var(--borda-fraca); }
+.secao:first-child { border-top: 0; }
+
+/* Topo */
+.topo {
+  display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+  padding: 1.25rem var(--respiro-x);
+  border-bottom: 1px solid var(--borda-fraca);
+  font-size: var(--t-pequeno);
+}
+.topo .marca { color: var(--texto-forte); text-decoration: none; font-weight: 500; }
+.topo nav { display: flex; gap: 1.5rem; }
+.topo nav a { color: var(--texto); text-decoration: none; }
+.topo nav a:hover { color: var(--texto-forte); }
+
+/* Tipografia */
+h1, h2, h3 { color: var(--texto-forte); font-weight: 500; margin: 0; }
+h1 { font-size: var(--t-titulo); line-height: 1.5; }
+h2 { font-size: 1.375rem; line-height: 1.5; margin-bottom: 1.25rem; }
+h3 { font-size: var(--t-base); line-height: 1.6; }
+p { margin: 0.75rem 0 0; }
+.rotulo { color: var(--texto-fraco); font-size: var(--t-pequeno); }
+
+/* Lista de cursos (e de aulas, com a coluna de data) */
+.aulas { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--borda-fraca); }
+.aula { border-bottom: 1px solid var(--borda-fraca); }
+.aula > a, .aula > div {
+  display: grid; grid-template-columns: 7rem 1fr auto; gap: 1.5rem; align-items: baseline;
+  padding: 1.25rem 0.75rem; text-decoration: none; color: var(--texto);
+}
+.cursos .aula > a, .cursos .aula > div { grid-template-columns: 1fr auto; }
+.aula > a:hover { background: var(--fundo-fraco-hover); }
+.aula .data { color: var(--texto-fraco); font-size: var(--t-pequeno); }
+.aula .estado { font-size: var(--t-pequeno); color: var(--texto-fraco); }
+.aula > a .estado { color: var(--texto-forte); }
+.aula .sub { display: block; color: var(--texto); }
+@media (max-width: 40rem) {
+  .aula > a, .aula > div { grid-template-columns: 1fr; gap: 0.25rem; }
+}
+
+/* Cartão principal: a ação mais importante da página, em destaque */
+.cartao {
+  display: flex; justify-content: space-between; align-items: center; gap: 1.5rem;
+  padding: 2.25rem 2.5rem; border-radius: 8px; background: var(--fundo-forte); color: var(--texto-invertido);
+  text-decoration: none; transition: background .15s;
+}
+.cartao:hover { background: var(--fundo-forte-hover); text-decoration: none; }
+.cartao h3 { color: var(--texto-invertido); font-size: var(--t-titulo); line-height: 1.3; }
+.cartao p { margin: 0.4rem 0 0; color: var(--texto-invertido-fraco); font-size: var(--t-pequeno); }
+.cartao .seta { font-size: 2.25rem; line-height: 1; transition: transform .15s; }
+.cartao:hover .seta { transform: translateX(6px); }
+.cartao:focus-visible { outline-offset: 4px; }
+
+/* Objetivos de aprendizagem: discretos, dentro da introdução */
+.objetivos { margin: 0.5rem 0 0; padding-left: 1.1rem; font-size: var(--t-pequeno); line-height: 1.75; }
+.objetivos li { margin: 0.2rem 0; }
+.objetivos li::marker { color: var(--texto-fraco); }
+
+/* Lista de arquivos */
+.arquivos { list-style: none; margin: 0; padding: 0; }
+.arquivos li { display: flex; justify-content: space-between; gap: 1rem; padding: 0.75rem 0; border-bottom: 1px solid var(--borda-fraca); }
+.arquivos li:first-child { border-top: 1px solid var(--borda-fraca); }
+
+/* Rodapé */
+.rodape { padding: 2rem var(--respiro-x); border-top: 1px solid var(--borda-fraca); font-size: var(--t-pequeno); color: var(--texto-fraco); line-height: 1.8; }
+.rodape p { margin: 0.25rem 0 0; }
+
+/* Passo a passo (padrão Steps do Starlight) */
+.etapas { list-style: none; margin: 0; padding: 0; counter-reset: etapa; }
+.etapa { position: relative; counter-increment: etapa; padding: 0 0 2.75rem 3.75rem; }
+.etapa::before {
+  content: counter(etapa); position: absolute; left: 0; top: 0.1rem; width: 2.25rem; height: 2.25rem;
+  display: grid; place-items: center; border-radius: 50%; background: var(--fundo-forte); color: var(--texto-invertido);
+  font: 500 var(--t-pequeno)/1 var(--fonte);
+}
+.etapa::after { content: ""; position: absolute; left: calc(1.125rem - 1px); top: 2.85rem; bottom: 0.6rem; border-left: 2px solid var(--borda-fraca); }
+.etapa:last-child { padding-bottom: 0; }
+.etapa:last-child::after { display: none; }
+.etapa > h2, .etapa > .variante > h2 { font-size: 1.375rem; line-height: 2.25rem; margin: 0 0 0.5rem; }
+.etapa > * + *, .etapa > .variante > * + * { margin-top: 1rem; }
+.etapa > .codigo + p, .etapa > .codigo + .codigo { margin-top: 1rem; }
+.etapa > .variante + .variante { margin-top: 0; }
+
+/* Seletor de variante ao lado do título do guia (como as abas do Starlight) */
+.titulo-guia { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.5rem 2rem; }
+.seletor { display: flex; flex-wrap: wrap; gap: 0 1.25rem; border-bottom: 1px solid var(--borda-fraca); }
+.seletor button { font: inherit; font-size: var(--t-pequeno); padding: 0.25rem 0; margin-bottom: -1px; border: 0; border-bottom: 2px solid transparent;
+  background: none; color: var(--texto); cursor: pointer; }
+.seletor button:hover { color: var(--texto-forte); }
+.seletor button[aria-selected="true"] { color: var(--texto-forte); border-bottom-color: var(--texto-forte); }
+.seletor button:focus-visible { outline: 2px solid var(--texto-forte); outline-offset: 2px; }
+.lista { margin: 0; padding-left: 1.25rem; }
+.lista li { margin: 0.35rem 0; }
+code { font-family: var(--fonte); color: var(--texto-forte); }
+p code, li code { background: var(--fundo-fraco); border: 1px solid var(--borda-fraca); border-radius: var(--raio); padding: 0 0.3rem; font-size: max(0.9em, var(--t-pequeno)); }
+.aviso { padding: 0.9rem 1.1rem; border-left: 3px solid var(--destaque); background: var(--fundo-fraco); }
+.aviso strong { display: block; color: var(--destaque); font-size: var(--t-pequeno); }
+
+/* Problemas comuns: sintoma em cima, solução embaixo */
+.problemas { list-style: none; margin: 0 0 1.25rem; padding: 0; border-top: 1px solid var(--borda-fraca); }
+.problemas li { padding: 1rem 0; border-bottom: 1px solid var(--borda-fraca); }
+.problemas p { margin: 0; }
+.problemas .sintoma { margin-bottom: 0.35rem; }
+
+/* Blocos de código: moldura de terminal com realce */
+.codigo { position: relative; margin: 1rem 0 0; border: 1px solid var(--codigo-borda); border-radius: 6px; background: var(--codigo-fundo); overflow: hidden; }
+.codigo-barra { position: relative; display: flex; justify-content: center; align-items: center; min-height: 2.5rem; padding: 0.25rem 4rem; background: var(--codigo-barra); border-bottom: 1px solid var(--codigo-borda); color: var(--codigo-titulo); font-size: var(--t-pequeno); line-height: 1.5; }
+.terminal .pontos { position: absolute; left: 0.9rem; top: 50%; width: 0.55rem; height: 0.55rem; margin-top: -0.275rem; border-radius: 50%; background: var(--codigo-borda); box-shadow: 0.9rem 0 0 var(--codigo-borda), 1.8rem 0 0 var(--codigo-borda); }
+.codigo pre { margin: 0; padding: 1rem 1.25rem; overflow-x: auto; font: var(--t-pequeno)/1.75 var(--fonte); color: var(--codigo-texto); }
+.codigo code { color: inherit; background: none; border: 0; padding: 0; font: inherit; }
+.codigo pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+.saida { border-style: dashed; }
+/* Tabela de referência: nunca quebra uma linha da tabela em duas; em tela estreita, rola na horizontal */
+.tabela .rolagem { overflow-x: auto; }
+.tabela table { width: 100%; border-collapse: collapse; font-size: var(--t-pequeno); line-height: 1.6; color: var(--codigo-texto); }
+.tabela th, .tabela td { padding: 0.6rem 1rem; text-align: left; vertical-align: top; border-bottom: 1px solid var(--codigo-borda); }
+.tabela th { font-weight: 500; color: var(--codigo-titulo); white-space: nowrap; }
+.tabela tbody tr:last-child td { border-bottom: 0; }
+.tabela td:not(:last-child) { white-space: nowrap; }
+.tabela td:last-child { min-width: 18rem; }
+.saida .codigo-barra { border-bottom-style: dashed; }
+.sx-cmd { color: var(--sx-cmd); } .sx-kw { color: var(--sx-kw); } .sx-flag { color: var(--sx-flag); }
+.sx-str { color: var(--sx-str); } .sx-var { color: var(--sx-var); } .sx-op { color: var(--sx-op); }
+.sx-num { color: var(--sx-num); } .sx-com { color: var(--sx-com); font-style: italic; } .sx-ok { color: var(--sx-ok); }
+.copiar {
+  position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); display: grid; place-items: center;
+  width: 1.9rem; height: 1.9rem; border: 1px solid var(--codigo-controle); border-radius: 4px; background: var(--codigo-fundo);
+  color: var(--codigo-titulo); cursor: pointer; opacity: 0; transition: opacity .15s, color .15s;
+}
+.codigo:hover .copiar, .copiar:focus-visible, .copiar.copiado { opacity: 1; }
+.copiar:hover { color: var(--codigo-texto); }
+@media (hover: none) { .copiar { opacity: 1; } }
+.copiar.copiado::after {
+  content: "Copiado!"; position: absolute; right: calc(100% + 0.5rem); top: 50%; transform: translateY(-50%);
+  padding: 0.1rem 0.5rem; border-radius: 4px; background: var(--fundo-forte); color: var(--texto-invertido);
+  font: var(--t-pequeno)/1.6 var(--fonte); white-space: nowrap;
+}
