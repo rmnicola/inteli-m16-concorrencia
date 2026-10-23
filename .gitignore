@@ -4,11 +4,12 @@ __pycache__/
 **/qa/
 **/dist/*.pdf
 
-# Fora do repositório público: referências, skills locais e config do OpenCode
+# Fora do repositório público: referências, skills locais, config do OpenCode e versão local do LBL
 ref-enade/
 .agents/skills/lbl/
 .opencode/
 header.txt
+lbl/
 
 # Dados de turma: nunca publicar
 **/alunos.md

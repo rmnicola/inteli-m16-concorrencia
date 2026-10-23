@@ -32,6 +32,11 @@
       ],
       "referencias": [
         {
+          "rotulo": "OSTEP, cap. 25: A Dialogue on Concurrency",
+          "tipo": "PDF",
+          "link": "https://pages.cs.wisc.edu/~remzi/OSTEP/dialogue-concurrency.pdf"
+        },
+        {
           "rotulo": "OSTEP, cap. 26: Concurrency and Threads",
           "tipo": "PDF",
           "link": "https://pages.cs.wisc.edu/~remzi/OSTEP/threads-intro.pdf"
@@ -45,6 +50,145 @@
           "rotulo": "Código do homework (threads-api)",
           "tipo": "GitHub",
           "link": "https://github.com/remzi-arpacidusseau/ostep-homework/tree/master/threads-api"
+        }
+      ]
+    },
+    {
+      "slug": "locks",
+      "pasta": "aulas/locks",
+      "titulo": "Locks",
+      "subtitulo": "Exclusão mútua e estruturas de dados concorrentes",
+      "proposito": "Entender como um lock é construído sobre instruções atômicas e como usá-lo para tornar uma estrutura de dados segura sem matar o desempenho.",
+      "referencias": [
+        {
+          "rotulo": "OSTEP, cap. 28: Locks",
+          "tipo": "PDF",
+          "link": "https://pages.cs.wisc.edu/~remzi/OSTEP/threads-locks.pdf"
+        },
+        {
+          "rotulo": "OSTEP, cap. 29: Lock-based Concurrent Data Structures",
+          "tipo": "PDF",
+          "link": "https://pages.cs.wisc.edu/~remzi/OSTEP/threads-locks-usage.pdf"
+        },
+        {
+          "rotulo": "Código do homework (threads-locks)",
+          "tipo": "GitHub",
+          "link": "https://github.com/remzi-arpacidusseau/ostep-homework/tree/master/threads-locks"
+        }
+      ]
+    },
+    {
+      "slug": "variaveis-de-condicao-e-semaforos",
+      "pasta": "aulas/variaveis-de-condicao-e-semaforos",
+      "titulo": "Variáveis de condição e semáforos",
+      "subtitulo": "Esperar por uma condição sem desperdiçar CPU",
+      "proposito": "Fazer threads esperarem umas pelas outras com variáveis de condição e semáforos, e resolver produtor/consumidor e leitores/escritores.",
+      "referencias": [
+        {
+          "rotulo": "OSTEP, cap. 30: Condition Variables",
+          "tipo": "PDF",
+          "link": "https://pages.cs.wisc.edu/~remzi/OSTEP/threads-cv.pdf"
+        },
+        {
+          "rotulo": "OSTEP, cap. 31: Semaphores",
+          "tipo": "PDF",
+          "link": "https://pages.cs.wisc.edu/~remzi/OSTEP/threads-sema.pdf"
+        },
+        {
+          "rotulo": "Código do homework (threads-cv)",
+          "tipo": "GitHub",
+          "link": "https://github.com/remzi-arpacidusseau/ostep-homework/tree/master/threads-cv"
+        },
+        {
+          "rotulo": "Código do homework (threads-sema)",
+          "tipo": "GitHub",
+          "link": "https://github.com/remzi-arpacidusseau/ostep-homework/tree/master/threads-sema"
+        }
+      ]
+    },
+    {
+      "slug": "bugs-de-concorrencia",
+      "pasta": "aulas/bugs-de-concorrencia",
+      "titulo": "Bugs de concorrência",
+      "subtitulo": "Violações de atomicidade, de ordem e deadlock",
+      "proposito": "Reconhecer os padrões de bug que aparecem em sistemas reais e evitar deadlock pela ordem de aquisição dos locks.",
+      "referencias": [
+        {
+          "rotulo": "OSTEP, cap. 32: Common Concurrency Problems",
+          "tipo": "PDF",
+          "link": "https://pages.cs.wisc.edu/~remzi/OSTEP/threads-bugs.pdf"
+        },
+        {
+          "rotulo": "Lu et al., Learning from Mistakes: A Comprehensive Study on Real World Concurrency Bug Characteristics (ASPLOS 2008)",
+          "tipo": "PDF",
+          "link": "https://people.cs.uchicago.edu/~shanlu/paper/asplos122-lu.pdf"
+        },
+        {
+          "rotulo": "Código do homework (threads-bugs)",
+          "tipo": "GitHub",
+          "link": "https://github.com/remzi-arpacidusseau/ostep-homework/tree/master/threads-bugs"
+        }
+      ]
+    },
+    {
+      "slug": "multiprocessadores-e-memoria",
+      "pasta": "aulas/multiprocessadores-e-memoria",
+      "titulo": "Multiprocessadores e memória",
+      "subtitulo": "Caches, coerência, atomics e ordenação de memória",
+      "proposito": "Entender o que o hardware garante quando várias CPUs compartilham memória e por que um código correto pode não escalar.",
+      "referencias": [
+        {
+          "rotulo": "OSTEP, cap. 10: Multiprocessor Scheduling",
+          "tipo": "PDF",
+          "link": "https://pages.cs.wisc.edu/~remzi/OSTEP/cpu-sched-multi.pdf"
+        },
+        {
+          "rotulo": "Rust Atomics and Locks, cap. 2: Atomics",
+          "tipo": "livro online",
+          "link": "https://marabos.nl/atomics/atomics.html"
+        },
+        {
+          "rotulo": "Rust Atomics and Locks, cap. 3: Memory Ordering",
+          "tipo": "livro online",
+          "link": "https://marabos.nl/atomics/memory-ordering.html"
+        }
+      ]
+    },
+    {
+      "slug": "concorrencia-por-eventos",
+      "pasta": "aulas/concorrencia-por-eventos",
+      "titulo": "Concorrência por eventos",
+      "subtitulo": "Loop de eventos, select/poll e revisão para a prova",
+      "proposito": "Escrever um servidor concorrente com uma thread só e comparar essa abordagem com threads, revisando o curso antes da prova.",
+      "referencias": [
+        {
+          "rotulo": "OSTEP, cap. 33: Event-based Concurrency",
+          "tipo": "PDF",
+          "link": "https://pages.cs.wisc.edu/~remzi/OSTEP/threads-events.pdf"
+        },
+        {
+          "rotulo": "OSTEP, cap. 34: Summary Dialogue on Concurrency",
+          "tipo": "PDF",
+          "link": "https://pages.cs.wisc.edu/~remzi/OSTEP/threads-dialogue.pdf"
+        }
+      ]
+    },
+    {
+      "slug": "gpu-e-cuda",
+      "pasta": "aulas/gpu-e-cuda",
+      "titulo": "GPU e CUDA",
+      "subtitulo": "Paralelismo massivo com milhares de threads",
+      "proposito": "Levar o que vimos de threads e sincronização para a GPU: grids, blocos, memória da GPU e barreiras em CUDA.",
+      "referencias": [
+        {
+          "rotulo": "An Even Easier Introduction to CUDA",
+          "tipo": "artigo",
+          "link": "https://developer.nvidia.com/blog/even-easier-introduction-cuda/"
+        },
+        {
+          "rotulo": "CUDA C++ Programming Guide, caps. 1 e 2",
+          "tipo": "documentação",
+          "link": "https://docs.nvidia.com/cuda/cuda-c-programming-guide/"
         }
       ]
     }
