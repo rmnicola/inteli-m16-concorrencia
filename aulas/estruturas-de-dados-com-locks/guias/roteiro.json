@@ -1,0 +1,52 @@
+{
+  "titulo": "Roteiro: estruturas de dados com locks",
+  "resumo": "Rascunho, vindo da primeira versão da aula de locks: os simuladores do contador aproximado e da tabela hash e uma medição de verdade com o `contador.c`.",
+  "contexto": "O `contador.c` está na página da aula. Roda no ambiente do [setup da aula 1](../../introducao-a-concorrencia/setup/).",
+  "passos": [
+    {
+      "titulo": "O contador aproximado",
+      "texto": [
+        "No simulador **Contador aproximado**, com 4 CPUs, ache o menor limiar S em que o tempo deixa de crescer com o número de threads.",
+        "Para esse S, calcule o maior atraso possível do contador global e compare com o que o simulador mostra."
+      ]
+    },
+    {
+      "titulo": "Um lock ou muitos?",
+      "texto": [
+        "No simulador **Um lock ou muitos?**, compare um lock para a tabela inteira com um lock por bucket. A partir de quantos buckets as threads praticamente param de esperar? Quando aumentar os buckets deixa de ajudar?"
+      ]
+    },
+    {
+      "titulo": "Medindo de verdade",
+      "texto": [
+        "Agora no seu computador. O `contador.c` implementa os dois contadores do capítulo 29: com S = 0, o exato, com um lock só; com S > 0, o aproximado. Ele mostra o tempo e quanto o global ficou abaixo da contagem real.",
+        "Quantas CPUs a sua máquina tem (`nproc`)? Meça o contador exato e o aproximado com 1, 2, 4 e 8 threads e compare com a fig. 29.5 do OSTEP. O número de CPUs muda o resultado?"
+      ],
+      "comandos": "curl -O https://rmnicola.github.io/inteli-m16-concorrencia/aulas/estruturas-de-dados-com-locks/contador.c\ngcc -O2 -Wall -pthread -o contador contador.c\nnproc\nfor t in 1 2 4 8; do ./contador $t 0; done\nfor t in 1 2 4 8; do ./contador $t 1024; done"
+    },
+    {
+      "titulo": "O limiar S",
+      "texto": [
+        "Com 4 threads, varie S e compare com a fig. 29.6. A partir de que S o tempo para de cair?",
+        "O atraso que aparece no fim é sempre menor que 4 × S. De onde vem o valor exato dele?"
+      ],
+      "comandos": "for s in 1 4 16 64 256 1024; do ./contador 4 $s; done"
+    },
+    {
+      "titulo": "Questões",
+      "texto": [
+        "As questões estão na apresentação."
+      ]
+    }
+  ],
+  "problemas": [
+    [
+      "`curl: command not found`",
+      "Instale com `sudo apt install -y curl` (no contêiner do macOS, sem `sudo`)."
+    ],
+    [
+      "Os tempos do `contador` mudam muito entre execuções",
+      "Rode cada medida três vezes e fique com a do meio. Feche programas pesados. No WSL e no Docker, o `nproc` pode mostrar menos CPUs que a máquina tem."
+    ]
+  ]
+}

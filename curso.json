@@ -57,8 +57,26 @@
       "slug": "locks",
       "pasta": "aulas/locks",
       "titulo": "Locks",
-      "subtitulo": "Exclusão mútua e estruturas de dados concorrentes",
-      "proposito": "Entender como um lock é construído sobre instruções atômicas e como usá-lo para tornar uma estrutura de dados segura sem matar o desempenho.",
+      "subtitulo": "Exclusão mútua com a ajuda do hardware e do sistema operacional",
+      "proposito": "Entender como um lock é construído sobre instruções atômicas e o que fazer enquanto ele está ocupado: girar, ceder a CPU ou dormir.",
+      "objetivos": [
+        "**Explicar** por que um flag na memória não garante exclusão mútua e como as instruções atômicas resolvem isso.",
+        "**Avaliar** um lock por correção, justiça e desempenho, e escolher entre girar, ceder a CPU e dormir.",
+        "**Simular** intercalações com o `x86.py` para testar locks e medir quanto eles giram."
+      ],
+      "apresentacao": "apresentacao/dist/index.html",
+      "roteiros": [
+        {
+          "rotulo": "Setup do ambiente (o mesmo da aula 1)",
+          "tipo": "passo a passo",
+          "link": "../introducao-a-concorrencia/setup/"
+        },
+        {
+          "rotulo": "Roteiro: construindo um lock",
+          "tipo": "roteiro",
+          "link": "roteiro/"
+        }
+      ],
       "referencias": [
         {
           "rotulo": "OSTEP, cap. 28: Locks",
@@ -66,14 +84,31 @@
           "link": "https://pages.cs.wisc.edu/~remzi/OSTEP/threads-locks.pdf"
         },
         {
-          "rotulo": "OSTEP, cap. 29: Lock-based Concurrent Data Structures",
-          "tipo": "PDF",
-          "link": "https://pages.cs.wisc.edu/~remzi/OSTEP/threads-locks-usage.pdf"
-        },
-        {
           "rotulo": "Código do homework (threads-locks)",
           "tipo": "GitHub",
           "link": "https://github.com/remzi-arpacidusseau/ostep-homework/tree/master/threads-locks"
+        }
+      ]
+    },
+    {
+      "slug": "estruturas-de-dados-com-locks",
+      "pasta": "aulas/estruturas-de-dados-com-locks",
+      "titulo": "Estruturas de dados com locks",
+      "subtitulo": "Contadores, listas, filas e tabelas hash concorrentes",
+      "proposito": "Retomar os locks e usá-los para tornar uma estrutura de dados segura sem matar o desempenho.",
+      "rascunho": true,
+      "roteiros": [
+        {
+          "rotulo": "Código: contador.c",
+          "tipo": "C",
+          "arquivo": "codigo/contador.c"
+        }
+      ],
+      "referencias": [
+        {
+          "rotulo": "OSTEP, cap. 29: Lock-based Concurrent Data Structures",
+          "tipo": "PDF",
+          "link": "https://pages.cs.wisc.edu/~remzi/OSTEP/threads-locks-usage.pdf"
         }
       ]
     },
@@ -158,8 +193,8 @@
       "slug": "concorrencia-por-eventos",
       "pasta": "aulas/concorrencia-por-eventos",
       "titulo": "Concorrência por eventos",
-      "subtitulo": "Loop de eventos, select/poll e revisão para a prova",
-      "proposito": "Escrever um servidor concorrente com uma thread só e comparar essa abordagem com threads, revisando o curso antes da prova.",
+      "subtitulo": "Loop de eventos e select/poll",
+      "proposito": "Escrever um servidor concorrente com uma thread só e comparar essa abordagem com threads.",
       "referencias": [
         {
           "rotulo": "OSTEP, cap. 33: Event-based Concurrency",

@@ -1,0 +1,192 @@
+{
+  "titulo": "Gabarito das questões",
+  "oculto": true,
+  "resumo": "Respostas comentadas das 10 questões da aula de locks, que estão na apresentação: a certa e o erro de raciocínio por trás de cada alternativa errada.",
+  "contexto": "Página para o professor: não aparece na página da aula. O repositório é público, então quem conhecer o endereço chega a ela. A fonte das questões é apresentacao/questoes.js.",
+  "passos": [
+    {
+      "titulo": "Quadro de respostas",
+      "tabela": {
+        "titulo": "Respostas",
+        "cabecalho": [
+          "Questão",
+          "Bloco",
+          "Resposta",
+          "Dificuldade"
+        ],
+        "linhas": [
+          [
+            "1",
+            "1",
+            "B",
+            "fácil"
+          ],
+          [
+            "2",
+            "2",
+            "A",
+            "fácil"
+          ],
+          [
+            "3",
+            "2",
+            "C",
+            "média"
+          ],
+          [
+            "4",
+            "3",
+            "B",
+            "média"
+          ],
+          [
+            "5",
+            "3",
+            "D",
+            "difícil"
+          ],
+          [
+            "6",
+            "4",
+            "C",
+            "fácil"
+          ],
+          [
+            "7",
+            "4",
+            "A",
+            "fácil"
+          ],
+          [
+            "8",
+            "4",
+            "D",
+            "média"
+          ],
+          [
+            "9",
+            "4",
+            "B",
+            "média"
+          ],
+          [
+            "10",
+            "4",
+            "A",
+            "difícil"
+          ]
+        ]
+      }
+    },
+    {
+      "titulo": "Questão 1 · bloco 1 · fácil",
+      "texto": [
+        "**Resposta: B.** É a falha da fig. 28.2 do OSTEP. Entre ler flag == 0 e escrever flag = 1 há uma janela: duas threads podem ler 0 antes de qualquer uma escrever 1, e as duas entram na seção crítica. Com as duas atualizando o contador ao mesmo tempo, incrementos se perdem."
+      ],
+      "depois": [
+        "(A) Girar desperdiça CPU, mas não perde incrementos: com dois núcleos a dona roda no outro, e com um núcleo só a interrupção do timer tira a CPU de quem gira.",
+        "(C) É verdade que esse unlock não confere o dono, mas no programa só quem tem o lock chama unlock; isso não explica incrementos perdidos.",
+        "(D) volatile obriga a reler a memória, mas não junta o teste e a escrita numa operação só: a janela continua lá."
+      ]
+    },
+    {
+      "titulo": "Questão 2 · bloco 2 · fácil",
+      "texto": [
+        "**Resposta: A.** Seção 28.5 do OSTEP. Com um núcleo, sem interrupção não há troca de contexto, e a seção crítica roda inteira. Com vários núcleos, cada um tem as próprias interrupções: desligá-las num núcleo não para os outros. E um aplicativo não pode desligar interrupções, senão poderia monopolizar a máquina."
+      ],
+      "depois": [
+        "(B) Desligar interrupções não afeta os acessos à memória da própria thread.",
+        "(C) Interrupções não têm relação com a região da memória; a pilha nem é o que as threads compartilham.",
+        "(D) Com vários núcleos, a técnica não garante nem a exclusão mútua, o requisito mais básico."
+      ]
+    },
+    {
+      "titulo": "Questão 3 · bloco 2 · média",
+      "texto": [
+        "**Resposta: C.** Seções 28.8 e 28.11. Com test-and-set, pega o lock quem executa a instrução na hora certa, e uma thread pode perder sempre. No ticket lock, turn chama os números em ordem: toda thread que pegou um número entra depois das que pegaram antes."
+      ],
+      "depois": [
+        "(A) O spin lock com test-and-set já é correto: a instrução é atômica.",
+        "(B) O ticket lock continua girando no while; para não gastar CPU é preciso ceder (yield) ou dormir.",
+        "(D) Quem espera no ticket lock lê turn sem parar: a espera ocupada continua."
+      ]
+    },
+    {
+      "titulo": "Questão 4 · bloco 3 · média",
+      "texto": [
+        "**Resposta: B.** Seção 28.16. No caso comum, o lock é liberado em cerca de 100 ns, e girar um pouco resolve sem pagar as trocas de contexto. No caso raro, a dona perdeu a CPU, e girar por milissegundos desperdiçaria um núcleo: aí vale dormir. É a ideia do futex no Linux."
+      ],
+      "depois": [
+        "(A) Paga 5 µs para esperar uma seção crítica de 100 ns, 50 vezes mais.",
+        "(C) O enunciado diz que a dona às vezes perde a CPU; aí quem gira gasta milissegundos de um núcleo sem fazer nada.",
+        "(D) Não funciona com vários núcleos e é privilegiada."
+      ]
+    },
+    {
+      "titulo": "Questão 5 · bloco 3 · difícil",
+      "texto": [
+        "**Resposta: D.** Há 4 trocas de contexto nos dois casos (T1→T2, T2→T3, T3→T4, T4→T1): 0,4 ms. Girando, T2, T3 e T4 gastam o quantum inteiro: 3 × 10 + 0,4 = 30,4 ms. Com yield, cada uma cede a CPU na primeira tentativa: só as trocas, 0,4 ms. Com N threads, girar desperdiça N − 1 quanta; o yield reduz isso a N − 1 trocas, que ainda crescem com N e não impedem uma thread de esperar para sempre. Daí a fila (seção 28.14)."
+      ],
+      "depois": [
+        "(A) Conta só a espera de T2.",
+        "(B) Conta um quantum para cada uma das quatro threads, inclusive T1, a dona do lock.",
+        "(C) Supõe que o yield não muda nada; ele devolve a CPU antes do fim do quantum."
+      ]
+    },
+    {
+      "titulo": "Questão 6 · bloco 4 · fácil",
+      "texto": [
+        "**Resposta: C.** A thread 0 lê flag = 0 (1000) e é interrompida; a thread 1 também lê 0. As duas escrevem 1 no flag (1003) e leem count = 0 (1004). A thread 0 escreve 1 em count (1006), e a thread 1, que já tinha somado 1 a 0 no próprio %ax, escreve 1 por cima. Resultado: 1, com as duas threads na seção crítica ao mesmo tempo. Para conferir: python3 x86.py -p flag.s -t 2 -a bx=1,bx=1 -i 3 -M flag,count -c."
+      ],
+      "depois": [
+        "(A) O flag não impede nada aqui: o teste (1000 a 1002) e a escrita (1003) ficaram em turnos diferentes.",
+        "(B) A thread 1 nunca voltou a .acquire: o jne dela não desviou, porque ela leu 0.",
+        "(D) Cada thread escreve 1 (0 + 1, no próprio registrador); uma escrita sobrescreve a outra, mas nenhuma zera o contador."
+      ]
+    },
+    {
+      "titulo": "Questão 7 · bloco 4 · fácil",
+      "texto": [
+        "**Resposta: A.** O xchg troca, de forma atômica, %ax (1) com mutex e deixa em %ax o valor antigo. Veio 1: o lock já era de outra thread, e mutex continua 1. Se viesse 0, o lock estava livre e agora é desta thread."
+      ],
+      "depois": [
+        "(B) Quem decide é o valor antigo, que voltou em %ax; o xchg sempre escreve 1.",
+        "(C) O xchg é atômico: uma interrupção acontece antes ou depois dele, nunca no meio.",
+        "(D) Inverte os papéis: mutex recebe o 1 que estava em %ax."
+      ]
+    },
+    {
+      "titulo": "Questão 8 · bloco 4 · média",
+      "texto": [
+        "**Resposta: D.** ticket é o próximo número a distribuir: já saíram os números 0 a 6. turn é o número da vez, e cada liberação soma 1 a ele: os números 0 a 4 já passaram pela seção crítica. Seguram números ainda não atendidos o 5, que é a vez dele, e o 6, que espera. Quando o 5 liberar, turn vira 6. A terceira thread está fora da aquisição."
+      ],
+      "depois": [
+        "(A) Confunde a quantidade de números distribuídos com a de threads; são só três threads.",
+        "(B) O 7 ainda nem foi distribuído; quem entra é o próximo número já pego, o 6.",
+        "(C) Esquece a thread do número 5, a dona do lock."
+      ]
+    },
+    {
+      "titulo": "Questão 9 · bloco 4 · média",
+      "texto": [
+        "**Resposta: B.** No test-and-set.s, a thread 1 gira até a interrupção: mov, xchg, test, jne, mov, xchg, ou seja, 6 instruções e 2 xchg, todas inúteis. No yield.s, ela tenta uma vez (mov, xchg, test, je) e executa o yield: 5 instruções e 1 xchg, e a CPU volta para a thread 0, que pode liberar o lock. Com turnos maiores, a diferença cresce: o spin gasta o turno inteiro, o yield continua gastando 5 instruções."
+      ],
+      "depois": [
+        "(A) Supõe que o yield não muda nada.",
+        "(C) Supõe que o test-and-set.s também para depois de uma tentativa; ele só para na interrupção.",
+        "(D) Supõe que a thread 1 nem roda enquanto o lock está ocupado; ela precisa tentar uma vez para descobrir isso."
+      ]
+    },
+    {
+      "titulo": "Questão 10 · bloco 4 · difícil",
+      "texto": [
+        "**Resposta: A.** Thread 0, turno 1: 1000 a 1004; o xchg devolve 0, ela pega o lock e lê count. Thread 1, turno 1: 1000 a 1003 e 1000; o xchg devolve 1. Thread 0, turno 2: 1005 a 1009; soma, escreve count = 1 e libera o lock em 1007. Thread 1, turno 2: 1001 em diante; o xchg devolve 0, e ela entra. São 3 xchg, e só 1 falhou. Para conferir: python3 x86.py -p test-and-set.s -t 2 -a bx=1,bx=1 -i 5 -M mutex,count -R ax -c."
+      ],
+      "depois": [
+        "(B) Esquece que a thread 1 tenta enquanto a thread 0 está na seção crítica.",
+        "(C) É o que acontece com -i 6: a thread 1 gira uma volta a mais antes de a thread 0 liberar.",
+        "(D) Conta como falha o xchg bem-sucedido da thread 1, que acontece depois da liberação."
+      ]
+    }
+  ]
+}

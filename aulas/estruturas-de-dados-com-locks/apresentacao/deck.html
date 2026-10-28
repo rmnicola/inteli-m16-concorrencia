@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>M16 - Estruturas de dados com locks</title>
+<link rel="stylesheet" href="../../../design-system/css/inteli-exec.css">
+<link rel="stylesheet" href="../../../design-system/assets/fonts/objetos/objetos.css">
+<style>
+/* Estilos sob medida deste deck. Cada slide sob medida tem um id e só se estiliza por ele;
+   o que vale para vários slides fica aqui em cima, com prefixo .slide. */
+
+/* Título no alto, à esquerda, nos slides sob medida */
+.slide .topo { position: absolute; left: 120px; top: 56px; }
+
+/* Código como objeto: Courier Prime, linhas de 46px; .m marca um trecho que se destaca num passo */
+.slide pre.cod { position: absolute; margin: 0; padding: 26px 34px; font: 30px/46px "Courier Prime", monospace; color: #1a1a1a; white-space: pre; background: var(--branco); }
+.slide pre.cod .c { color: #6b6b6b; }
+.slide pre.cod .m { border-radius: 4px; outline: 3px solid transparent; outline-offset: 2px; transition: outline-color .3s, background .3s; }
+.slide pre.cod.terminal { background: var(--roxo); color: var(--branco); }
+
+/* Legenda que troca a cada passo: os itens ocupam a mesma célula da grade e entram/saem por passos */
+.slide .troca { position: absolute; display: grid; }
+.slide .troca > * { grid-area: 1 / 1; margin: 0; }
+
+/* ---------- Simuladores: montados por sims.js dentro de .sim, em coordenadas da tela de 1600 × 900 ---------- */
+.slide .sim { position: absolute; inset: 0; z-index: 1; }
+.slide .sim > * { position: absolute; }
+.slide .sim-titulo { left: 120px; top: 56px; }
+.slide .cab { font-size: 28px; color: var(--texto-suave); white-space: nowrap; }
+.slide .linha { display: flex; gap: 18px; align-items: baseline; justify-content: space-between; }
+.slide .conta { font: 700 28px var(--f-destaque); }
+.slide input[type=range] { display: block; margin: 0; width: 100%; accent-color: var(--coral); height: 32px; cursor: pointer; }
+.slide .sim button, .slide .q-dir button { font: 28px/1.2 var(--f-texto); color: var(--roxo); background: transparent; border: 3px solid var(--roxo); padding: 4px 18px; cursor: pointer; }
+.slide .sim button.ativo { background: var(--roxo); color: var(--branco); }
+.slide .sim button:disabled { opacity: .35; cursor: default; }
+.slide button.icone { width: 64px; height: 64px; padding: 10px; border-radius: 10px; display: grid; place-items: center; }
+.slide button.icone svg { width: 36px; height: 36px; }
+.slide .opcoes { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.slide .opcoes .cab { margin-right: 6px; }
+.slide .ctl-linha { display: flex; gap: 48px; align-items: flex-end; }
+.slide .rodape-sim { display: flex; gap: 14px; align-items: flex-end; }
+.slide .alvo-ajuda { pointer-events: none; }
+.slide .ruim { color: var(--coral-texto); font-weight: 700; }
+
+/* Quem pega o lock? */
+.slide .thr { border: 3px solid var(--cinza-escuro); background: var(--branco); padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 14px; transition: border-color .25s; }
+.slide .thr.rodando { border-color: var(--roxo); outline: 3px solid var(--roxo); }
+.slide .thr.com-lock .cab-thr .estado { color: var(--texto); background: var(--verde); padding: 0 8px; border-radius: 6px; }
+.slide .thr .cab-thr { display: flex; align-items: center; justify-content: space-between; }
+.slide .thr .nome { font-size: 34px; font-weight: 700; }
+.slide .thr .estado { font-size: 28px; color: var(--texto-suave); }
+.slide .cod-thr { display: flex; flex-direction: column; gap: 0; }
+.slide .cod-thr .ins { white-space: nowrap; font: 28px/44px "Courier Prime", monospace; color: #1a1a1a; padding: 0 10px; border-radius: 4px; border-left: 5px solid transparent; }
+.slide .cod-thr .ins.em-cs { border-left-color: var(--coral); }
+.slide .cod-thr .ins.proxima { outline: 3px solid var(--coral); outline-offset: -3px; }
+.slide .regs { display: flex; align-items: center; gap: 14px; font: 28px var(--f-destaque); }
+.slide .chip { padding: 0 10px; border-radius: 6px; background: var(--lilas); font-weight: 700; display: inline-block; min-width: 2.4ch; text-align: center; }
+.slide .baixo-thr { display: flex; align-items: center; gap: 18px; }
+.slide .conta-thr { font-size: 28px; color: var(--texto-suave); white-space: nowrap; }
+.slide .baixo-lock { display: flex; gap: 40px; align-items: flex-end; }
+.slide .mem-linha { display: flex; gap: 20px; }
+.slide .mem { width: 210px; border: 3px solid var(--roxo); background: var(--branco); padding: 14px 20px; display: flex; flex-direction: column; gap: 4px; box-sizing: border-box; }
+.slide .mem .valor { font: 700 64px/1 var(--f-destaque); }
+.slide .aviso-lock { flex: 1; display: flex; flex-direction: column; gap: 8px; font-size: 30px; line-height: 1.3; }
+
+/* Girando à toa */
+.slide .grade-tempo { display: flex; flex-direction: column; gap: 6px; }
+.slide .linha-tempo { display: flex; align-items: stretch; }
+.slide .linha-tempo .quem { width: 80px; font: 700 28px var(--f-destaque); display: flex; align-items: center; }
+.slide .faixa { display: flex; outline: 2px solid var(--roxo); }
+.slide .cel { display: inline-block; height: 100%; box-sizing: border-box; border-right: 1px solid rgba(46, 38, 64, .12); }
+.slide .cel.cs { background: var(--roxo); }
+.slide .cel.trab { background: var(--verde); }
+.slide .cel.gira { background: repeating-linear-gradient(135deg, var(--branco) 0 5px, var(--coral) 5px 10px); }
+.slide .cel.dorme { background: var(--cinza-medio); }
+.slide .cel.pronta { background: var(--branco); }
+.slide .legenda-tempo { display: flex; gap: 34px; align-items: center; }
+.slide .item-leg { display: flex; gap: 10px; align-items: center; font-size: 28px; white-space: nowrap; }
+.slide .item-leg .cel { width: 30px; height: 30px; outline: 2px solid var(--roxo); outline-offset: -2px; }
+.slide .resumo-tempo { display: flex; flex-direction: column; gap: 6px; font-size: 28px; }
+.slide .resumo-tempo b { font-weight: 700; }
+
+/* Contador aproximado */
+.slide button.local, .slide .global { height: 210px; border: 3px solid var(--roxo); background: var(--branco); padding: 14px 20px; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; box-sizing: border-box; text-align: left; }
+.slide .global { background: var(--roxo); color: var(--branco); }
+.slide .global .cab { color: var(--cinza-medio); }
+.slide .local .valor, .slide .global .valor { font: 700 72px/1 var(--f-destaque); }
+.slide .barra-s { display: flex; gap: 6px; }
+.slide .barra-s i { width: 18px; height: 22px; outline: 2px solid var(--roxo); outline-offset: -2px; }
+.slide .barra-s i.cheio { background: var(--coral); }
+.slide .contas-aprox { display: flex; gap: 56px; align-items: baseline; font-size: 34px; }
+.slide .contas-aprox p { margin: 0; white-space: nowrap; }
+.slide .contas-aprox b { font: 700 52px var(--f-destaque); margin-left: 8px; }
+.slide .contas-aprox b.atrasado { color: var(--coral-texto); }
+.slide .trilha { display: flex; gap: 10px; align-items: center; flex-wrap: nowrap; }
+.slide .trilha .rot-trilha { font-size: 28px; color: var(--texto-suave); margin-right: 8px; }
+.slide .trilha .ev { font: 700 28px var(--f-destaque); padding: 4px 10px; border-radius: 6px; background: var(--lilas); white-space: nowrap; }
+.slide .trilha .ev.transf { background: var(--roxo); color: var(--branco); }
+
+/* Quanto custa a precisão */
+.slide svg.grafico { position: absolute; inset: 0; width: 1600px; height: 900px; overflow: visible; }
+.slide svg.grafico line.grade { stroke: var(--cinza-medio); stroke-width: 2; }
+.slide svg.grafico line.eixo { stroke: var(--roxo); stroke-width: 3; }
+.slide svg.grafico .rot-eixo { font: 28px var(--f-texto); fill: var(--texto-suave); }
+.slide svg.grafico .serie polyline { fill: none; stroke-width: 5; stroke-linejoin: round; }
+.slide svg.grafico .serie.exato polyline { stroke: var(--coral); stroke-dasharray: 16 10; }
+.slide svg.grafico .serie.exato rect { fill: var(--coral); stroke: var(--cinza-claro); stroke-width: 3; }
+.slide svg.grafico .serie.aprox polyline { stroke: var(--roxo); }
+.slide svg.grafico .serie.aprox circle { fill: var(--roxo); stroke: var(--cinza-claro); stroke-width: 3; }
+.slide svg.grafico .rot-serie { font: 700 28px var(--f-texto); fill: var(--texto); }
+.slide .lado-custo { display: flex; flex-direction: column; gap: 48px; }
+.slide .lado-custo .opcoes button { min-width: 100px; }
+.slide .atraso-custo { display: flex; flex-direction: column; gap: 6px; }
+.slide .atraso-custo b { font: 700 52px var(--f-destaque); }
+
+/* Um lock ou muitos? */
+.slide .tabela-hash { display: grid; gap: 10px; }
+.slide .bucket { border: 3px solid var(--cinza-escuro); background: var(--branco); box-sizing: border-box; transition: background .2s; }
+.slide .bucket.ocupado { background: var(--roxo); border-color: var(--roxo); }
+.slide .bucket.espera { outline: 5px solid var(--coral); outline-offset: 2px; }
+.slide .threads-hash { display: flex; flex-wrap: wrap; gap: 12px; }
+.slide .chip-t { font: 700 28px var(--f-destaque); padding: 6px 12px; border-radius: 6px; border: 3px solid var(--roxo); }
+.slide .chip-t.fora { background: var(--verde); }
+.slide .chip-t.dentro { background: var(--roxo); color: var(--branco); }
+.slide .chip-t.quer { background: var(--branco); border-color: var(--coral); border-style: dashed; }
+.slide .numeros-hash { display: flex; flex-direction: column; gap: 22px; }
+.slide .numeros-hash p { margin: 0; display: flex; flex-direction: column; }
+.slide .numeros-hash b { font: 700 52px var(--f-destaque); }
+
+/* ---------- Placar (fonte única em sims.js) ---------- */
+.slide .lugar-placar { position: absolute; left: 120px; top: 170px; width: 1360px; }
+.slide .tab-placar { border-collapse: collapse; width: 100%; font-size: 28px; }
+.slide .tab-placar th { font-weight: 400; color: var(--texto-suave); text-align: left; padding: 8px 14px; border-bottom: 3px solid var(--roxo); }
+.slide .tab-placar td { padding: 8px 14px; border-bottom: 2px solid var(--cinza-medio); white-space: nowrap; }
+.slide .tab-placar td:first-child { font-weight: 700; width: 400px; }
+.slide .tab-placar tr.futuro td { visibility: hidden; }
+.slide .tab-placar tr.novo td { background: var(--branco); }
+.slide .tab-placar .bom { background: var(--verde); padding: 0 10px; border-radius: 6px; }
+.slide .tab-placar .ruim { color: var(--coral-texto); font-weight: 700; }
+
+/* ---------- Questões (montadas por sims.js a partir de questoes.js) ---------- */
+.slide .q-esq { position: absolute; left: 120px; top: 130px; width: 720px; display: flex; flex-direction: column; gap: 20px; }
+.slide .q-esq .q-rot { position: static; }
+.slide .q-enunciado { font-size: 28px; line-height: 1.42; margin: 0; }
+.slide .q-enunciado code, .slide .q-comando code { font-family: var(--f-destaque); }
+.slide .q-codigos { display: flex; gap: 20px; align-items: flex-start; }
+.slide .q-cod { display: flex; flex-direction: column; gap: 6px; }
+.slide .q-cod pre.cod { position: static; font-size: 24px; line-height: 32px; padding: 16px 22px; }
+.slide .q-dir { position: absolute; left: 890px; top: 130px; width: 600px; display: flex; flex-direction: column; gap: 14px; }
+.slide .q-comando { font-size: 30px; font-weight: 700; line-height: 1.3; margin: 0 0 6px; }
+.slide .q-dir button.q-alt { display: flex; gap: 16px; align-items: flex-start; text-align: left; border-color: var(--cinza-escuro); background: var(--branco); padding: 10px 16px; line-height: 1.32; }
+.slide .q-alt .letra { font: 700 28px/1.32 var(--f-destaque); flex: none; }
+.slide .q-dir button.q-alt.escolhida { border-color: var(--roxo); outline: 3px solid var(--roxo); }
+.slide .q-dir button.q-alt.certa { background: var(--verde); border-color: var(--roxo); }
+.slide .q-dir button.q-alt.errada .txt { text-decoration: line-through; text-decoration-color: var(--coral); text-decoration-thickness: 4px; }
+.slide .q-rodape { display: flex; gap: 18px; align-items: center; margin-top: 6px; }
+.slide .q-resultado { font-size: 28px; color: var(--texto-suave); }
+.slide.revelada .q-resultado { color: var(--texto); font-weight: 700; }
+
+/* ---------- Slides sob medida ---------- */
+#livro .capa-livro { position: absolute; left: 200px; top: 126px; height: 648px; transform: rotate(-2deg); }
+#livro .lado-livro { position: absolute; left: 700px; top: 0; bottom: 0; width: 780px; display: flex; flex-direction: column; justify-content: center; gap: 24px; }
+
+#ideia-lock pre.cod { left: 120px; top: 200px; }
+#ideia-lock .pergunta { position: absolute; left: 120px; top: 560px; width: 1360px; }
+
+#interrupcoes pre.cod { left: 120px; top: 190px; }
+#interrupcoes .lado { position: absolute; left: 900px; top: 200px; width: 580px; display: flex; flex-direction: column; gap: 28px; }
+
+#flag-codigo pre.cod, #tas-codigo pre.cod, #ticket-codigo pre.cod, #fila-codigo pre.cod, #lista pre.cod, #contador pre.cod { left: 120px; top: 180px; font-size: 28px; line-height: 42px; }
+#flag-codigo .troca, #tas-codigo .troca, #ticket-codigo .troca, #fila-codigo .troca { left: 1040px; top: 220px; width: 440px; }
+#flag-codigo[data-estado="1"] .a1, #tas-codigo[data-estado="1"] .a1, #tas-codigo[data-estado="2"] .a2, #ticket-codigo[data-estado="1"] .a1, #ticket-codigo[data-estado="2"] .a2, #ticket-codigo[data-estado="3"] .a3,
+#fila-codigo[data-estado="1"] .a1, #fila-codigo[data-estado="2"] .a2, #lista[data-estado="1"] .a1, #lista[data-estado="2"] .a2 { outline-color: var(--coral); background: #fff2f2; }
+
+#atomicas .grade { position: absolute; left: 120px; top: 180px; width: 1360px; display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+#atomicas .inst { display: flex; flex-direction: column; gap: 12px; }
+#atomicas .inst b { font-size: 34px; }
+#atomicas pre.cod { position: static; font-size: 28px; line-height: 40px; padding: 18px 24px; }
+
+#duas-fases .tempo { position: absolute; left: 120px; top: 260px; display: flex; height: 120px; }
+#duas-fases .tempo > div { display: grid; place-items: center; font-size: 30px; font-weight: 700; outline: 3px solid var(--roxo); outline-offset: -3px; }
+#duas-fases .gira { width: 420px; background: repeating-linear-gradient(135deg, var(--branco) 0 12px, rgba(255, 69, 69, .5) 12px 20px); }
+#duas-fases .dorme { width: 760px; background: var(--cinza-medio); }
+#duas-fases .fases { position: absolute; left: 120px; top: 400px; display: flex; font-size: 28px; color: var(--texto-suave); }
+#duas-fases .fases span:first-child { width: 420px; }
+#duas-fases .texto { position: absolute; left: 120px; top: 520px; max-width: 1200px; }
+#duas-fases .rotulo-termo { left: 120px; top: 680px; }
+
+#contador .medidas { position: absolute; left: 1000px; top: 200px; display: flex; flex-direction: column; gap: 18px; }
+#contador .medidas p { margin: 0; font: 700 40px var(--f-destaque); }
+#contador .medidas small { font: 400 28px var(--f-texto); color: var(--texto-suave); margin-left: 14px; }
+#contador .medidas .cab { margin-bottom: 4px; }
+#contador .rotulo-termo { left: 1000px; top: 680px; }
+
+#lista .troca { left: 120px; top: 640px; width: 1360px; }
+
+#fila-ms .nos { position: absolute; left: 120px; top: 360px; display: flex; align-items: center; gap: 0; }
+#fila-ms .no { width: 200px; height: 110px; border: 3px solid var(--roxo); background: var(--branco); display: grid; place-items: center; font: 700 30px var(--f-destaque); }
+#fila-ms .no.ficticio { background: repeating-linear-gradient(135deg, var(--branco) 0 12px, var(--cinza-medio) 12px 18px); }
+#fila-ms .ponte { width: 80px; height: 0; border-top: 4px solid var(--roxo); position: relative; }
+#fila-ms .ponte::after { content: ""; position: absolute; right: -2px; top: -12px; border-left: 18px solid var(--roxo); border-top: 10px solid transparent; border-bottom: 10px solid transparent; }
+#fila-ms .ptr { position: absolute; display: flex; flex-direction: column; align-items: center; gap: 8px; width: 260px; }
+#fila-ms .ptr .lockbox { font: 700 28px var(--f-destaque); background: var(--roxo); color: var(--branco); padding: 6px 14px; border-radius: 6px; }
+#fila-ms .ptr .seta-v { font-size: 48px; line-height: 1; color: var(--coral-texto); }
+#fila-ms .troca { left: 120px; top: 620px; width: 1360px; }
+
+#roteiro1 .esq, #roteiro2 .esq { position: absolute; left: 120px; top: 200px; width: 900px; display: flex; flex-direction: column; gap: 30px; }
+#roteiro1 pre.cod, #roteiro2 pre.cod { position: static; font-size: 28px; line-height: 42px; }
+#roteiro1 .qr, #roteiro2 .qr { position: absolute; left: 1120px; top: 220px; width: 360px; display: flex; flex-direction: column; gap: 20px; align-items: center; text-align: center; }
+#roteiro1 .qr img, #roteiro2 .qr img { width: 320px; height: 320px; image-rendering: pixelated; background: var(--branco); padding: 20px; box-sizing: content-box; }
+
+#para-pensar .perguntas { position: absolute; left: 120px; top: 200px; width: 1300px; display: flex; flex-direction: column; gap: 44px; }
+#para-pensar .perguntas p { margin: 0; font-size: 40px; font-weight: 700; line-height: 1.25; }
+</style>
+</head>
+<body>
+<main class="deck">
+
+  <section class="slide capa sem-numero">
+    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <div class="conteudo">
+      <h1 class="titulo-capa">M16 - Estruturas de dados com locks</h1>
+      <p class="autor">Prof. Nicola</p>
+    </div>
+    <aside class="notas">Rascunho do encontro 3: retomada dos locks (cap. 28) e estruturas de dados concorrentes (OSTEP, cap. 29). Slides vindos da primeira versão da aula de locks; falta planejar a retomada e a dinâmica.</aside>
+  </section>
+  <section class="slide" id="livro" data-modelo="livro" data-max-palavras="30">
+    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="objeto capa-livro" src="assets/ostep-capa.jpg" alt="Capa do livro Operating Systems: Three Easy Pieces">
+    <div class="lado-livro">
+      <p class="subtitulo">Operating Systems: Three Easy Pieces</p>
+      <p class="texto" style="max-width: none">Capítulo 29</p>
+      <p class="legenda">ostep.org · gratuito</p>
+    </div>
+    <aside class="notas">Na aula passada, usamos o lock da biblioteca de threads (pthread_mutex_lock) para proteger o contador. Hoje abrimos a caixa: o cap. 28 constrói um lock a partir do que o hardware e o SO oferecem; o cap. 29 usa locks em estruturas de dados sem matar o desempenho.</aside>
+  </section>
+  <section class="slide" id="contador" data-modelo="contador" data-max-palavras="60">
+    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">Um contador, um lock</h2>
+<pre class="objeto cod">void increment(counter_t *c) {
+    pthread_mutex_lock(&amp;c-&gt;lock);
+    c-&gt;value++;
+    pthread_mutex_unlock(&amp;c-&gt;lock);
+}</pre>
+    <div class="medidas">
+      <span class="cab">1 milhão de incrementos por thread</span>
+      <p class="passo" data-passo="1">0,019 s<small>1 thread</small></p>
+      <p class="passo" data-passo="2">0,097 s<small>2 threads</small></p>
+      <p class="passo" data-passo="2">0,303 s<small>4 threads</small></p>
+      <p class="passo" data-passo="2">0,579 s<small>8 threads</small></p>
+    </div>
+    <p class="rotulo-termo passo" data-passo="3">não escala</p>
+    <aside class="notas">Seção 29.1, fig. 29.2. O jeito mais simples de tornar uma estrutura segura: um lock em cada operação (como um monitor). Está correto. Tempos medidos com o contador.c da parte 3 do roteiro, numa máquina de 12 CPUs. Pergunta antes de avançar: com 2 threads em 2 CPUs, quanto deveria levar? O ideal seria o mesmo tempo de 1 thread, com o dobro do trabalho. Mas leva 5 vezes mais, e com 8, 30 vezes. No livro (fig. 29.5), de 0,03 s para mais de 5 s. O lock e o contador passam de CPU em CPU. Se a estrutura não for lenta demais para o seu uso, pare aqui: está pronto.</aside>
+  </section>
+  <section class="slide" id="sim-aprox" data-modelo="simulador" data-max-palavras="150">
+    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <div class="sim" data-sim="aprox"></div>
+    <aside class="notas">Fig. 29.3, o contador aproximado (sloppy counter). Um contador local por CPU, cada um com o próprio lock, e um global com lock. Cada thread incrementa o local da sua CPU, sem disputa. Quando o local chega a S, o valor dele vai para o global. Clique nos locais (ou use os botões) com S = 5 até haver uma transferência. Pergunta: quanto o global pode ficar atrás da contagem real? No máximo N × (S − 1), com N CPUs. Quanto maior S, menos o global é disputado, e mais ele atrasa.</aside>
+  </section>
+  <section class="slide" id="sim-custo" data-modelo="simulador" data-max-palavras="150">
+    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <div class="sim" data-sim="custo"></div>
+    <aside class="notas">Figs. 29.5 e 29.6, com tempos medidos com o contador.c desta aula, numa máquina de 12 CPUs (mediana de 3 execuções). A linha tracejada é o contador exato. Com S = 1, o aproximado não ajuda (é até pior: dois locks por incremento). A partir de S = 16 ou 64, o tempo quase não cresce com as threads. Pergunta: qual S vocês escolheriam? Depende de quanto atraso a aplicação tolera.</aside>
+  </section>
+  <section class="slide" id="lista" data-modelo="codigo-explicado" data-max-palavras="50">
+    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">Uma lista ligada</h2>
+<pre class="objeto cod">void List_Insert(list_t *L, int key) {
+    <span class="m a1">node_t *new = malloc(sizeof(node_t));</span>
+    <span class="m a1">if (new == NULL) { perror("malloc"); return; }</span>
+    new-&gt;key = key;
+    <span class="m a2">pthread_mutex_lock(&amp;L-&gt;lock);</span>
+    <span class="m a2">new-&gt;next = L-&gt;head;</span>
+    <span class="m a2">L-&gt;head = new;</span>
+    <span class="m a2">pthread_mutex_unlock(&amp;L-&gt;lock);</span>
+}</pre>
+    <i class="passo" data-passo="1"></i><i class="passo" data-passo="2"></i>
+    <div class="troca">
+      <p class="texto passo" data-passo="1" data-sai="2" style="max-width: none">O malloc fica fora do lock: se falhar, não há lock para esquecer de liberar.</p>
+      <p class="texto passo" data-passo="2" style="max-width: none">O lock protege só o que é compartilhado: a cabeça da lista.</p>
+    </div>
+    <aside class="notas">Seção 29.2, fig. 29.8. Na primeira versão (fig. 29.7), o lock vinha antes do malloc, e o caminho de erro precisava liberá-lo: um erro clássico em caminhos raros. Com o malloc fora (ele é thread-safe), a seção crítica encolhe e o caminho de erro fica sem lock. Sobre escalar: hand-over-hand (um lock por nó) parece melhor, mas pegar e soltar um lock a cada nó costuma custar mais do que ganha.</aside>
+  </section>
+  <section class="slide" id="fila-ms" data-modelo="fila-ms" data-max-palavras="50">
+    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">Uma fila, dois locks</h2>
+    <div class="ptr" style="left: 90px; top: 200px"><span class="lockbox">head_lock</span><span class="seta-v">↓</span></div>
+    <div class="ptr" style="left: 930px; top: 200px"><span class="lockbox">tail_lock</span><span class="seta-v">↓</span></div>
+    <div class="nos">
+      <div class="no ficticio">fictício</div><div class="ponte"></div>
+      <div class="no">10</div><div class="ponte"></div>
+      <div class="no">20</div><div class="ponte"></div>
+      <div class="no">30</div>
+    </div>
+    <i class="passo" data-passo="1"></i><i class="passo" data-passo="2"></i>
+    <div class="troca">
+      <p class="texto passo" data-passo="1" data-sai="2" style="max-width: none">dequeue só mexe na cabeça; enqueue, só na cauda.</p>
+      <p class="texto passo" data-passo="2" style="max-width: none">O nó fictício mantém as duas pontas separadas, mesmo com a fila vazia.</p>
+    </div>
+    <aside class="notas">Seção 29.3, fig. 29.9, a fila de Michael e Scott. Um lock para a cabeça e outro para a cauda: um enqueue e um dequeue acontecem ao mesmo tempo. O nó fictício, alocado no Queue_Init, faz head e tail nunca apontarem para o mesmo nó que as duas operações alterariam. Na prática, filas assim costumam precisar também de esperar quando estão vazias ou cheias: é a fila limitada da próxima aula, com variáveis de condição.</aside>
+  </section>
+  <section class="slide" id="sim-hash" data-modelo="simulador" data-max-palavras="150">
+    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <div class="sim" data-sim="hash"></div>
+    <aside class="notas">Seção 29.4, fig. 29.11. Uma tabela hash em que cada bucket é uma lista com o próprio lock. No simulador, cada inserção sorteia um bucket, fica 2 ticks com o lock e passa 2 ticks fora da tabela. Com um lock só, a vazão para em 0,5 inserção por tick, não importa quantas threads: elas fazem fila. Com um lock por bucket, só esperam as que caem no mesmo bucket. Aumente os buckets e veja a espera cair. Pergunta: com 64 buckets e 8 threads, quanto ainda se espera? Por quê?</aside>
+  </section>
+  <section class="slide" id="roteiro2" data-modelo="roteiro" data-max-palavras="60">
+    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">Medindo de verdade</h2>
+    <div class="esq">
+      <p class="texto" style="max-width: none">Parte 3: os simuladores e o contador.c.</p>
+<pre class="objeto cod terminal">gcc -O2 -Wall -pthread -o contador contador.c
+./contador 4 0
+./contador 4 1024</pre>
+    </div>
+    <div class="qr">
+      <img src="assets/qr-aula.png" alt="QR code da página da aula">
+      <p class="legenda">Roteiro e código na página da aula</p>
+    </div>
+    <aside class="notas">Parte 3 do roteiro: os simuladores do contador aproximado e da tabela hash e o contador.c, baixado da página da aula. S = 0 é o contador exato. Peça para compararem com as figs. 29.5 e 29.6 e com o slide "Quanto custa a precisão". O número de CPUs importa (nproc); no WSL e no Docker pode aparecer menos que a máquina tem. Depois, as questões 11 a 15.</aside>
+  </section>
+  <section class="slide" data-q="1" data-modelo="questao" data-max-palavras="200"><img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli"></section>
+  <section class="slide" data-q="2" data-modelo="questao" data-max-palavras="200"><img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli"></section>
+  <section class="slide" data-q="3" data-modelo="questao" data-max-palavras="200"><img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli"></section>
+  <section class="slide" data-q="4" data-modelo="questao" data-max-palavras="200"><img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli"></section>
+  <section class="slide" data-q="5" data-modelo="questao" data-max-palavras="200"><img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli"></section>
+  <section class="slide" id="para-pensar" data-modelo="para-pensar" data-max-palavras="50">
+    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">Para pensar</h2>
+    <div class="perguntas">
+      <p>Um lock justo é sempre mais rápido?</p>
+      <p class="passo" data-passo="1">O que pesa mais: o lock em si ou quantas threads disputam o mesmo lock?</p>
+      <p class="passo" data-passo="2">Quando um lock só já basta?</p>
+    </div>
+    <aside class="notas">Fechamento. 1: não; o ticket lock é justo e gira tanto quanto o test-and-set, e a fila é justa mas paga trocas de contexto. 2: nos três exemplos do cap. 29, o que decidiu foi a disputa (granularidade), não a implementação do lock. 3: o conselho do capítulo: comece com um lock só; otimize só se medir que é lento demais (e lembre-se de Knuth, otimização prematura). Próxima aula: esperar por uma condição, com variáveis de condição e semáforos.</aside>
+  </section>
+
+</main>
+<script>
+  /* Agenda: fonte única para os slides .agenda */
+  const AGENDA = ["Construindo um lock", "Girar, ceder ou dormir", "Mão na massa", "Estruturas de dados concorrentes"];
+  document.querySelectorAll(".slide.agenda").forEach((sec) => {
+    const agora = parseInt(sec.dataset.agora, 10);
+    const itens = document.createElement("div");
+    itens.className = "itens";
+    itens.innerHTML = `<p class="rotulo-agenda">Agenda</p>` + AGENDA.map((t, i) =>
+      `<p class="item${i < agora ? " passou" : i === agora ? " agora" : ""}"><span class="marcador">${String(i + 1).padStart(2, "0")}</span>${t}</p>`).join("");
+    sec.append(itens);
+  });
+</script>
+<script src="questoes.js"></script>
+<script src="sims.js"></script>
+<script src="../../../design-system/js/deck.js"></script>
+</body>
+</html>

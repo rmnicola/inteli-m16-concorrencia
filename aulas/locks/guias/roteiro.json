@@ -1,0 +1,138 @@
+{
+  "titulo": "Roteiro: construindo um lock",
+  "resumo": "Quatro blocos, cada um com uma rodada de exploração e uma de discussão. Nos três primeiros, você lê um trecho do capítulo 28 do OSTEP e mexe nos simuladores da apresentação; no quarto, faz o homework do capítulo com o simulador `x86.py`. Antes de mexer, faça uma previsão; depois confira e anote o que encontrou, para a discussão.",
+  "contexto": "Abra a apresentação (na página da aula) e o PDF do capítulo lado a lado. O bloco 4 roda no ambiente do [setup da aula 1](../../introducao-a-concorrencia/setup/): o `x86.py` está em `ostep-homework/threads-locks` e precisa só do Python 3, que já vem no Ubuntu. No macOS, rode dentro do contêiner.",
+  "passos": [
+    {
+      "titulo": "Bloco 1 · Leitura",
+      "texto": [
+        "Leia as seções 28.1 a 28.4 e 28.6 do [capítulo 28 do OSTEP](https://pages.cs.wisc.edu/~remzi/OSTEP/threads-locks.pdf): o que é um lock, como usá-lo, os critérios para avaliá-lo e a primeira tentativa, um flag na memória."
+      ]
+    },
+    {
+      "titulo": "Bloco 1 · Quebrando o flag",
+      "texto": [
+        "Na apresentação, abra o simulador **Quem pega o lock?** com o lock de flag. Você é o escalonador: cada botão roda a próxima instrução de uma thread.",
+        "Antes de clicar, preveja: qual é a menor sequência de passos que põe as duas threads na seção crítica? Encontre-a e anote. O que aconteceu com o contador?"
+      ]
+    },
+    {
+      "titulo": "Bloco 2 · Leitura",
+      "texto": [
+        "Leia as seções 28.5 e 28.7 a 28.11: desligar as interrupções e as instruções atômicas que o hardware oferece (test-and-set, compare-and-swap, load-linked e store-conditional, fetch-and-add), com o ticket lock."
+      ]
+    },
+    {
+      "titulo": "Bloco 2 · O test-and-set resiste?",
+      "texto": [
+        "Vá ao **Quem pega o lock?** com **test-and-set**, alguns slides adiante, e tente a mesma sequência. Você consegue pôr as duas threads na seção crítica? Em que linha está a diferença?"
+      ]
+    },
+    {
+      "titulo": "Bloco 2 · Quem entra primeiro?",
+      "texto": [
+        "No test-and-set, escolha 3 threads e tente fazer uma delas nunca pegar o lock: ela sempre tenta na hora errada. Dá para fazer isso por quanto tempo?",
+        "Repita no **ticket lock**, o simulador seguinte. O que muda? Quem decide a ordem em cada um?"
+      ]
+    },
+    {
+      "titulo": "Bloco 3 · Leitura",
+      "texto": [
+        "Leia as seções 28.12 a 28.16: o que fazer enquanto o lock está ocupado. Ceder a CPU (yield), dormir numa fila (park e unpark), o futex do Linux e o lock em duas fases."
+      ]
+    },
+    {
+      "titulo": "Bloco 3 · Girando à toa",
+      "texto": [
+        "No simulador **Girando à toa**, com uma CPU e espera girando, anote a fração da CPU desperdiçada com 2, 4 e 8 threads. Preveja a regra antes de conferir.",
+        "Troque para **yield** e depois para **fila**. O que cai? O que continua crescendo com o número de threads? Quem pega o lock em seguida, em cada caso?"
+      ]
+    },
+    {
+      "titulo": "Bloco 3 · Duas CPUs",
+      "texto": [
+        "Passe para **2 CPUs**. Girar ainda é sempre desperdício? Em que situação girar um pouco antes de dormir é a melhor escolha?"
+      ]
+    },
+    {
+      "titulo": "Bloco 4 · O flag.s no x86.py",
+      "texto": [
+        "O `x86.py` simula threads executando um assembly simplificado e mostra cada intercalação. Leia `flag.s`: é o lock de flag da apresentação, em assembly. Você entende o código?",
+        "Rode com os valores padrão (duas threads, uma passada cada). Antes de pôr o `-c`, que mostra os valores, preveja o valor final de `flag` e de `count`. Depois confira."
+      ],
+      "comandos": "cd ostep-homework/threads-locks\ncat flag.s\npython3 x86.py -p flag.s -t 2 -M flag,count -R ax,bx\npython3 x86.py -p flag.s -t 2 -M flag,count -R ax,bx -c",
+      "aviso": "O `x86.py` chama `python`, que o Ubuntu não tem: por isso os comandos usam `python3 x86.py`."
+    },
+    {
+      "titulo": "Bloco 4 · Mais voltas, outras interrupções",
+      "texto": [
+        "Rode com `-a bx=2,bx=2`. O que o código faz agora? Isso muda a sua previsão?",
+        "Com `bx` alto, varie o intervalo de interrupção (`-i`). Que intervalos levam a um `count` errado? Quais levam ao certo? Por quê?"
+      ],
+      "comandos": "python3 x86.py -p flag.s -t 2 -a bx=2,bx=2 -M flag,count -c\npython3 x86.py -p flag.s -t 2 -a bx=100,bx=100 -M count -i 3 -c | tail -3"
+    },
+    {
+      "titulo": "Bloco 4 · O test-and-set.s",
+      "texto": [
+        "Leia `test-and-set.s`. Como é a aquisição do lock? E a liberação?",
+        "Rode com `bx` alto e vários `-i`. O código sempre funciona? Às vezes ele desperdiça CPU? Como você mediria esse desperdício? Dica: `grep -c xchg` conta quantas vezes o `xchg` rodou; quantas delas eram necessárias?"
+      ],
+      "comandos": "cat test-and-set.s\npython3 x86.py -p test-and-set.s -t 2 -a bx=100,bx=100 -M mutex,count -i 5 -c | tail -3\npython3 x86.py -p test-and-set.s -t 2 -a bx=100,bx=100 -i 5 | grep -c xchg"
+    },
+    {
+      "titulo": "Bloco 4 · Testes com -P",
+      "texto": [
+        "Com `-P` você escolhe quem roda a cada instrução: `-P 00001111` roda 4 instruções da thread 0, depois 4 da thread 1, e repete.",
+        "Monte um escalonamento em que a thread 0 pega o lock e a thread 1 tenta pegá-lo logo em seguida. Acontece a coisa certa? Que outros casos você testaria?"
+      ],
+      "comandos": "python3 x86.py -p test-and-set.s -t 2 -P 00001111 -M mutex,count -R ax -c"
+    },
+    {
+      "titulo": "Bloco 4 · O ticket.s",
+      "texto": [
+        "Compare `ticket.s` com o ticket lock da apresentação. Rode com mil passadas por thread: as threads passam muito tempo girando? `grep -c \"mov turn\"` conta as vezes em que uma thread conferiu se era a vez dela.",
+        "E com três threads?"
+      ],
+      "comandos": "cat ticket.s\npython3 x86.py -p ticket.s -t 2 -a bx=1000,bx=1000 -i 5 | grep -c \"mov turn\"\npython3 x86.py -p ticket.s -t 3 -a bx=1000,bx=1000,bx=1000 -i 5 | grep -c \"mov turn\""
+    },
+    {
+      "titulo": "Bloco 4 · O yield.s",
+      "texto": [
+        "Em `yield.s`, a instrução `yield` faz a thread ceder a CPU (no mundo real, isso seria uma chamada ao sistema operacional).",
+        "Encontre um cenário em que o `test-and-set.s` gasta instruções girando e o `yield.s` não. Quantas instruções você economiza? Em que situações essa economia aparece?"
+      ],
+      "comandos": "cat yield.s\npython3 x86.py -p test-and-set.s -t 2 -a bx=10,bx=10 -i 6 | wc -l\npython3 x86.py -p yield.s -t 2 -a bx=10,bx=10 -i 6 | wc -l"
+    },
+    {
+      "titulo": "Bloco 4 · O test-and-test-and-set.s",
+      "texto": [
+        "Leia `test-and-test-and-set.s`. O que esse lock faz antes do `xchg`? Que economia ele traz em relação ao `test-and-set.s`? Compare quantas vezes o `xchg` roda em cada um."
+      ],
+      "comandos": "cat test-and-test-and-set.s\npython3 x86.py -p test-and-set.s -t 2 -a bx=100,bx=100 -i 5 | grep -c xchg\npython3 x86.py -p test-and-test-and-set.s -t 2 -a bx=100,bx=100 -i 5 | grep -c xchg"
+    },
+    {
+      "titulo": "Questões",
+      "texto": [
+        "Cada bloco fecha com questões objetivas, sem nota, na própria apresentação, logo depois do slide de discussão: questão 1 no bloco 1, 2 e 3 no bloco 2, 4 e 5 no bloco 3, e 6 a 10 no bloco 4. Clique na alternativa que escolher e, depois, no olho, para revelar a resposta."
+      ]
+    },
+    {
+      "titulo": "Para pensar",
+      "texto": [
+        "Um lock justo é sempre mais rápido? E um lock rápido é sempre justo?",
+        "Quando girar é melhor que dormir? Pense no número de CPUs e no tamanho da seção crítica.",
+        "Se uma estrutura de dados inteira tiver um lock só, o que acontece quando muitas threads a usam ao mesmo tempo?"
+      ]
+    }
+  ],
+  "problemas": [
+    [
+      "`/usr/bin/env: 'python': No such file or directory`",
+      "Rode com `python3 x86.py ...` em vez de `./x86.py ...`."
+    ],
+    [
+      "`python3: can't open file 'x86.py'`",
+      "Você está fora da pasta do homework. Entre em `ostep-homework/threads-locks`; se a pasta não existir, refaça o passo do `git clone` do [setup](../../introducao-a-concorrencia/setup/)."
+    ]
+  ]
+}
