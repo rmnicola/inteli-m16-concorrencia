@@ -96,15 +96,30 @@
       "titulo": "Estruturas de dados com locks",
       "subtitulo": "Contadores, listas, filas e tabelas hash concorrentes",
       "proposito": "Retomar os locks e usá-los para tornar uma estrutura de dados segura sem matar o desempenho.",
-      "rascunho": true,
+      "apresentacao": "apresentacao/dist/index.html",
       "roteiros": [
         {
           "rotulo": "Código: contador.c",
           "tipo": "C",
           "arquivo": "codigo/contador.c"
+        },
+        {
+          "rotulo": "Código: estruturas.c (lista, fila e tabela hash)",
+          "tipo": "C",
+          "arquivo": "codigo/estruturas.c"
+        },
+        {
+          "rotulo": "Lista de exercícios (caps. 26 a 29)",
+          "tipo": "exercícios",
+          "pagina": "lista/dist/index.html"
         }
       ],
       "referencias": [
+        {
+          "rotulo": "OSTEP, cap. 28: Locks",
+          "tipo": "PDF",
+          "link": "https://pages.cs.wisc.edu/~remzi/OSTEP/threads-locks.pdf"
+        },
         {
           "rotulo": "OSTEP, cap. 29: Lock-based Concurrent Data Structures",
           "tipo": "PDF",
