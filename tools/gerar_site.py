@@ -270,6 +270,12 @@ def objetivos(aula: dict) -> str:
 SECOES = (("roteiros", "Roteiros"), ("referencias", "Referências"))
 
 
+def nome_pagina(pagina: str) -> str:
+    """Item "pagina" (um HTML da pasta da aula, como a lista de exercícios em lista/dist/index.html): é publicado
+    como <primeira pasta>.html (lista.html) e aberto no navegador, e não baixado como um "arquivo"."""
+    return Path(pagina).parts[0] + ".html"
+
+
 def gerar_aula(curso: dict, n: int, aula: dict) -> str:
     """Página de uma aula: a apresentação, os roteiros e as referências."""
     partes = [f"""<section class="secao">
@@ -288,6 +294,8 @@ def gerar_aula(curso: dict, n: int, aula: dict) -> str:
         itens = "".join(
             f'<li><a href="{escape(r["link"])}"{NOVA_ABA}>{escape(r["rotulo"])}</a><span class="rotulo">{escape(r["tipo"])}</span></li>'
             if r.get("link") else
+            f'<li><a href="{escape(nome_pagina(r["pagina"]))}"{NOVA_ABA}>{escape(r["rotulo"])}</a><span class="rotulo">{escape(r["tipo"])}</span></li>'
+            if r.get("pagina") else
             f'<li><a href="{escape(Path(r["arquivo"]).name)}" download{NOVA_ABA}>{escape(r["rotulo"])}</a><span class="rotulo">{escape(r["tipo"])}</span></li>'
             for r in aula[campo])
         partes.append(f'<section class="secao"><h2>{titulo}</h2><ul class="arquivos">{itens}</ul></section>')
@@ -422,6 +430,8 @@ def main() -> None:
         for item in [i for campo, _ in SECOES for i in aula.get(campo, [])]:
             if item.get("arquivo"):
                 shutil.copy(origem / item["arquivo"], destino / Path(item["arquivo"]).name)
+            if item.get("pagina"):
+                shutil.copy(origem / item["pagina"], destino / nome_pagina(item["pagina"]))
         # Passo a passo e roteiros: cada <pasta>/guias/<nome>.json vira aulas/<slug>/<nome>/.
         for guia in sorted((origem / "guias").glob("*.json")):
             prep = json.loads(guia.read_text(encoding="utf-8"))

@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>M16 - Locks</title>
-<link rel="stylesheet" href="../../../design-system/css/inteli-exec.css">
-<link rel="stylesheet" href="../../../design-system/assets/fonts/objetos/objetos.css">
+<link rel="stylesheet" href="../../.design-system/css/inteli-exec.css">
+<link rel="stylesheet" href="../../.design-system/assets/fonts/objetos/objetos.css">
 <style>
 /* Estilos sob medida deste deck. Cada slide sob medida tem um id e só se estiliza por ele;
    o que vale para vários slides fica aqui em cima, com prefixo .slide. */
@@ -168,7 +168,7 @@
 <main class="deck">
 
   <section class="slide capa sem-numero">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <div class="conteudo">
       <h1 class="titulo-capa">M16 - Locks</h1>
       <p class="autor">Prof. Nicola</p>
@@ -176,11 +176,11 @@
     <aside class="notas">Locks (OSTEP, cap. 28), numa aula conduzida pelos alunos: quatro rodadas de explorar e discutir. Em cada rodada, eles leem as seções indicadas do OSTEP e mexem nos simuladores desta apresentação (abrem pela página da aula), com o cronômetro na tela; depois, a discussão parte do que encontraram e passa pelas questões do bloco. Tempo: abertura 5 min; bloco 1, 25 min; bloco 2, 30 min; bloco 3, 25 min; bloco 4 (homework), 35 min. As estruturas de dados com locks (cap. 29) ficam para o encontro 3.</aside>
   </section>
   <section class="slide agenda curta" data-agora="0">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <aside class="notas">Agenda: quatro blocos, cada um com uma rodada de exploração e uma de discussão. Bloco 1: o problema e o lock mais simples, um flag na memória.</aside>
   </section>
   <section class="slide" id="ideia-lock" data-modelo="codigo-explicado" data-max-palavras="40">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <h2 class="titulo topo">Como se constrói um lock?</h2>
 <pre class="objeto cod">lock_t mutex;   <span class="c">// livre ou ocupado</span>
 
@@ -191,7 +191,7 @@ unlock(&amp;mutex);</pre>
     <aside class="notas">Revisão rápida (2 a 3 min) do problema da aula passada: duas threads incrementando um contador perdem atualizações, porque counter = counter + 1 são três instruções e a troca de contexto pode cair no meio. O lock resolve: só uma thread por vez na seção crítica. Pergunta para abrir a rodada: como escrever lock() e unlock()? A resposta vem da leitura e do simulador.</aside>
   </section>
   <section class="slide explorar" id="explorar-1" data-modelo="explorar" data-max-palavras="80">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <h2 class="titulo topo">Explorar: um lock simples</h2>
     <div class="tarefas">
       <div class="tarefa"><span class="rotulo-termo">leia</span><p>OSTEP 28.1 a 28.4 e 28.6</p></div>
@@ -202,7 +202,7 @@ unlock(&amp;mutex);</pre>
     <aside class="notas">12 minutos. Inicie o cronômetro (▶) e deixe-os ler e mexer. No simulador, eles são o escalonador: cada botão roda a próxima linha de uma thread. Circule e pergunte quem já quebrou o lock. Depois, avance para a discussão.</aside>
   </section>
   <section class="slide" id="flag-codigo" data-modelo="codigo-explicado" data-max-palavras="40">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <h2 class="titulo topo">Um flag na memória</h2>
 <pre class="objeto cod">void lock(lock_t *m) {
     <span class="m a1">while (m-&gt;flag == 1)</span>
@@ -220,12 +220,12 @@ void unlock(lock_t *m) {
     <aside class="notas">Fig. 28.1, a primeira tentativa: uma variável flag. lock() espera girando enquanto o flag é 1 e depois escreve 1; unlock() escreve 0. Avance: testar e escrever são duas operações separadas. No próximo slide, eles são o escalonador e tentam quebrar esse lock.</aside>
   </section>
   <section class="slide" id="sim-flag" data-modelo="simulador" data-max-palavras="150">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <div class="sim" data-sim="lock" data-lock="flag"></div>
     <aside class="notas">Fig. 28.2 do OSTEP. Vocês são o escalonador: o botão de cada thread roda a próxima linha dela, e cada thread repete sem parar (pega o lock, lê count, escreve count + 1, libera). Primeiro uma passada inteira de T1 e depois T2: tudo certo. Depois peça a menor sequência que põe as duas com o lock: T1 testa (flag = 0), T2 testa (ainda 0), as duas escrevem 1 e entram. O aviso aparece embaixo. Continue as duas até escreverem count: um incremento se perde. Termo: não há exclusão mútua. Ainda: a espera girando (spin-waiting) gasta CPU sem fazer nada.</aside>
   </section>
   <section class="slide" id="discutir-1" data-modelo="discussao" data-max-palavras="50">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <h2 class="titulo topo">Discussão</h2>
     <div class="perguntas">
       <p>Que sequência de passos quebrou o flag?</p>
@@ -234,19 +234,19 @@ void unlock(lock_t *m) {
     </div>
     <aside class="notas">8 minutos. 1: alguém mostra no simulador (fig. 28.2): T1 testa (0), T2 testa (0), as duas escrevem 1 e entram. 2: testar e escrever são duas operações; a troca de contexto pode cair entre elas. Falta uma operação atômica. 3: seção 28.4: exclusão mútua (correção), justiça (ninguém espera para sempre) e desempenho (sem disputa, com disputa numa CPU, com disputa em várias). Depois, a questão 1, e o placar.</aside>
   </section>
-  <section class="slide" data-q="1" data-modelo="questao" data-max-palavras="200"><img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli"></section>
+  <section class="slide" data-q="1" data-modelo="questao" data-max-palavras="200"><img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli"></section>
   <section class="slide placar" data-ate="1" data-modelo="placar" data-max-palavras="60">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <h2 class="titulo topo">Como avaliar um lock</h2>
     <div class="lugar-placar"></div>
     <aside class="notas">O placar com os critérios da seção 28.4. O flag falha na exclusão mútua, não é justo e gira. Ele vai se preencher a cada bloco.</aside>
   </section>
   <section class="slide agenda curta" data-agora="1">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <aside class="notas">Agenda: bloco 2, o que o hardware oferece para construir um lock.</aside>
   </section>
   <section class="slide explorar" id="explorar-2" data-modelo="explorar" data-max-palavras="90">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <h2 class="titulo topo">Explorar: a ajuda do hardware</h2>
     <div class="tarefas">
       <div class="tarefa"><span class="rotulo-termo">leia</span><p>OSTEP 28.5 e 28.7 a 28.11</p></div>
@@ -257,7 +257,7 @@ void unlock(lock_t *m) {
     <aside class="notas">15 minutos. A leitura vai de desligar as interrupções (28.5) ao fetch-and-add e ao ticket lock (28.11). Nos simuladores: tentar a sequência que quebrou o flag (não dá), e, com 3 threads, fazer uma delas nunca pegar o lock no test-and-set (dá) e no ticket (não dá).</aside>
   </section>
   <section class="slide" id="interrupcoes" data-modelo="codigo-explicado" data-max-palavras="40">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <h2 class="titulo topo">Desligar as interrupções</h2>
 <pre class="objeto cod">void lock() {
     DisableInterrupts();
@@ -274,7 +274,7 @@ void unlock() {
     <aside class="notas">Seção 28.5, a primeira solução, dos sistemas de um processador só. Sem interrupção não há troca de contexto, e a seção crítica roda inteira. Avance: com várias CPUs, desligar as interrupções numa não impede as outras de entrar. Avance: é uma operação privilegiada; se um aplicativo pudesse, poderia chamar lock() no começo e monopolizar a máquina. Ainda: interrupções perdidas (um disco que terminou uma leitura) e o custo nas CPUs modernas. O SO usa isso dentro do kernel, em trechos curtos.</aside>
   </section>
   <section class="slide" id="tas-codigo" data-modelo="codigo-explicado" data-max-palavras="50">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <h2 class="titulo topo">Test-and-set</h2>
 <pre class="objeto cod"><span class="m a1">int TestAndSet(int *p, int novo) {</span>
 <span class="m a1">    int velho = *p;</span>
@@ -294,12 +294,12 @@ void lock(lock_t *m) {
     <aside class="notas">Seção 28.7, fig. 28.3. O test-and-set (no x86, xchg) devolve o valor antigo e grava o novo, atomicamente. Passo 2: se voltou 0, o lock estava livre e eu o peguei (o 1 já está lá); se voltou 1, estava ocupado, e escrever 1 de novo não muda nada. unlock() continua escrevendo 0. É o spin lock. Atenção: numa CPU só, ele precisa de um escalonador preemptivo, senão quem gira nunca solta a CPU.</aside>
   </section>
   <section class="slide" id="sim-tas" data-modelo="simulador" data-max-palavras="150">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <div class="sim" data-sim="lock" data-lock="tas"></div>
     <aside class="notas">O mesmo simulador com test-and-set: TAS(&amp;flag) devolve o flag antigo e escreve 1 numa linha só. Peça de novo a sequência que quebrou o flag: não existe, porque não há como cair entre o teste e a escrita. Depois passe para 3 threads e peça para fazer uma delas nunca pegar o lock: basta escalonar T3 só quando o lock está ocupado. Dá para fazer isso para sempre: o spin lock não é justo. E repare no contador "girou": tempo de CPU jogado fora.</aside>
   </section>
   <section class="slide" id="atomicas" data-modelo="atomicas" data-max-palavras="60">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <h2 class="titulo topo">Outras instruções atômicas</h2>
     <div class="grade">
       <div class="inst"><b>test-and-set</b>
@@ -314,7 +314,7 @@ void lock(lock_t *m) {
     <aside class="notas">Seções 28.9 a 28.11. Todas fazem leitura e escrita numa operação indivisível. Compare-and-swap (x86: cmpxchg) só escreve se o valor ainda é o esperado e devolve o que achou; com ele dá para fazer o mesmo spin lock, e mais coisas (estruturas sem lock). Load-linked e store-conditional (ARM, RISC-V, PowerPC): o SC só grava se ninguém escreveu em p desde o LL, e diz se conseguiu. Fetch-and-add incrementa e devolve o valor antigo: com ele vem o ticket lock, o próximo slide.</aside>
   </section>
   <section class="slide" id="ticket-codigo" data-modelo="codigo-explicado" data-max-palavras="50">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <h2 class="titulo topo">Ticket lock</h2>
 <pre class="objeto cod">void lock(lock_t *l) {
     <span class="m a1">int eu = FetchAndAdd(&amp;l-&gt;ticket);</span>
@@ -334,12 +334,12 @@ void unlock(lock_t *l) {
     <aside class="notas">Seção 28.11, fig. 28.7, de Mellor-Crummey e Scott. Como a fila de senhas da padaria: fetch-and-add dá a cada thread um número diferente (ticket), e turn diz de quem é a vez. unlock() chama o próximo número. Toda thread que pegou um número vai entrar, na ordem: é justo.</aside>
   </section>
   <section class="slide" id="sim-ticket" data-modelo="simulador" data-max-palavras="150">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <div class="sim" data-sim="lock" data-lock="ticket"></div>
     <aside class="notas">O mesmo simulador com o ticket lock (FAA = fetch-and-add). Com 3 threads, peça de novo para T3 nunca entrar: depois que ela pega um número, as outras não conseguem passar na frente dela. Quem decide a ordem é a ordem dos números, não a sorte do escalonamento. Mas o contador "girou" continua subindo: a espera ainda é ocupada.</aside>
   </section>
   <section class="slide" id="discutir-2" data-modelo="discussao" data-max-palavras="50">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <h2 class="titulo topo">Discussão</h2>
     <div class="perguntas">
       <p>Por que desligar as interrupções não serve?</p>
@@ -348,20 +348,20 @@ void unlock(lock_t *l) {
     </div>
     <aside class="notas">10 minutos. 1: só vale com uma CPU, e um aplicativo não pode desligar interrupções. 2: teste e escrita numa operação só (test-and-set, compare-and-swap, LL/SC, fetch-and-add): o spin lock é correto. 3: no test-and-set, sim (não é justo); no ticket lock, não: cada thread entra na vez do seu número. Mas os dois giram enquanto esperam. Depois, as questões 2 e 3, e o placar.</aside>
   </section>
-  <section class="slide" data-q="2" data-modelo="questao" data-max-palavras="200"><img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli"></section>
-  <section class="slide" data-q="3" data-modelo="questao" data-max-palavras="200"><img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli"></section>
+  <section class="slide" data-q="2" data-modelo="questao" data-max-palavras="200"><img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli"></section>
+  <section class="slide" data-q="3" data-modelo="questao" data-max-palavras="200"><img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli"></section>
   <section class="slide placar" data-ate="4" data-modelo="placar" data-max-palavras="60">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <h2 class="titulo topo">Placar</h2>
     <div class="lugar-placar"></div>
     <aside class="notas">Test-and-set: correto, não é justo, gira (numa CPU, um quantum inteiro por thread esperando). Ticket: correto e justo, mas gira do mesmo jeito. O que fazer enquanto espera é o bloco 3.</aside>
   </section>
   <section class="slide agenda curta" data-agora="2">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <aside class="notas">Agenda: bloco 3, o que o sistema operacional oferece para não girar à toa.</aside>
   </section>
   <section class="slide explorar" id="explorar-3" data-modelo="explorar" data-max-palavras="80">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <h2 class="titulo topo">Explorar: a ajuda do sistema operacional</h2>
     <div class="tarefas">
       <div class="tarefa"><span class="rotulo-termo">leia</span><p>OSTEP 28.12 a 28.16</p></div>
@@ -372,12 +372,12 @@ void unlock(lock_t *l) {
     <aside class="notas">12 minutos. A leitura vai do problema de girar demais (28.12) ao yield, às filas com park e unpark, ao futex do Linux e ao lock em duas fases. No simulador: com 1 CPU, o coral cresce com as threads; o yield troca o giro por trocas de contexto; a fila é justa (a ordem fica 1 2 3 4 …). Com 2 CPUs e 2 threads, girar quase não desperdiça.</aside>
   </section>
   <section class="slide" id="sim-espera" data-modelo="simulador" data-max-palavras="150">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <div class="sim" data-sim="espera"></div>
     <aside class="notas">Seções 28.12 a 28.14. N threads repetem: trabalham fora do lock, pegam o lock, ficam 3 unidades na seção crítica, liberam. Rodízio com quantum de 6 unidades, troca de contexto de 1. Comece com 1 CPU e girar: aumente as threads e veja o coral crescer. Quando a dona perde a CPU na seção crítica, as outras giram o quantum inteiro. Troque para yield (28.13): quem encontra o lock ocupado cede a CPU; o coral quase some, mas as trocas de contexto crescem com o número de threads, e ainda não há garantia de quem pega o lock. Troque para fila (28.14): quem encontra o lock ocupado dorme na fila do lock, e a dona acorda a próxima ao liberar; a ordem fica 1 2 3 4 1 2 3 4. Por fim 2 CPUs com 2 threads e girar: girar quase não desperdiça, porque a dona está rodando na outra CPU. Mas com 2 CPUs, 8 threads e girar, veja a ordem: T1 e T2 pegam o lock sempre.</aside>
   </section>
   <section class="slide" id="fila-codigo" data-modelo="codigo-explicado" data-max-palavras="50">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <h2 class="titulo topo">Dormir em vez de girar</h2>
 <pre class="objeto cod">void lock(lock_t *m) {
     if (ocupado(m)) {
@@ -397,7 +397,7 @@ void unlock(lock_t *m) {
     <aside class="notas">Seção 28.14, um esboço da fig. 28.9 (no Solaris: park e unpark). O SO dá as primitivas de dormir e acordar; o lock guarda a fila de quem espera. A thread acordada já recebe o lock, sem disputar de novo: por isso a fila é justa. O código real precisa de um guard (um spin lock curto) protegendo a fila e o flag, e de cuidado com a corrida entre park e unpark (setpark). Dormir custa duas trocas de contexto.</aside>
   </section>
   <section class="slide" id="duas-fases" data-modelo="duas-fases" data-max-palavras="40">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <h2 class="titulo topo">Lock em duas fases</h2>
     <div class="tempo"><div class="gira">gira um pouco</div><div class="dorme passo" data-passo="1">dorme na fila</div></div>
     <div class="fases"><span>fase 1</span><span class="passo" data-passo="1">fase 2, se não conseguiu</span></div>
@@ -406,7 +406,7 @@ void unlock(lock_t *m) {
     <aside class="notas">Seções 28.15 e 28.16. Girar só compensa quando a espera é curta, e dormir só compensa quando é longa. O lock em duas fases (Dahm, anos 1960) gira um pouco e, se não conseguir, dorme. É o que o mutex do Linux faz com o futex: um inteiro na memória, operações atômicas no caminho rápido (sem chamar o SO quando não há disputa) e futex_wait/futex_wake quando precisa dormir. O pthread_mutex_lock que usamos na aula passada é assim.</aside>
   </section>
   <section class="slide" id="discutir-3" data-modelo="discussao" data-max-palavras="50">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <h2 class="titulo topo">Discussão</h2>
     <div class="perguntas">
       <p>Quanto da CPU se perde girando? Por quê?</p>
@@ -415,20 +415,20 @@ void unlock(lock_t *m) {
     </div>
     <aside class="notas">10 minutos. 1: quando a dona do lock perde a CPU na seção crítica, cada thread que espera gira um quantum inteiro: o desperdício cresce com o número de threads. 2: o yield devolve a CPU, mas cada espera custa uma troca de contexto por thread, e ninguém garante a ordem (justiça). A fila resolve as duas coisas, ao custo de dormir e acordar. 3: quando a espera é curta e há mais de uma CPU: o lock em duas fases, como o futex. Depois, as questões 4 e 5, e o placar completo.</aside>
   </section>
-  <section class="slide" data-q="4" data-modelo="questao" data-max-palavras="200"><img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli"></section>
-  <section class="slide" data-q="5" data-modelo="questao" data-max-palavras="200"><img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli"></section>
+  <section class="slide" data-q="4" data-modelo="questao" data-max-palavras="200"><img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli"></section>
+  <section class="slide" data-q="5" data-modelo="questao" data-max-palavras="200"><img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli"></section>
   <section class="slide placar" data-ate="7" data-modelo="placar" data-max-palavras="80">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <h2 class="titulo topo">Placar</h2>
     <div class="lugar-placar"></div>
     <aside class="notas">O placar completo. Yield: tira o giro, mas paga trocas e não é justo. Fila: justa e sem giro, mas dormir e acordar custa caro quando a espera seria curta. Duas fases: o que se usa na prática (pthread_mutex no Linux).</aside>
   </section>
   <section class="slide agenda curta" data-agora="3">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <aside class="notas">Agenda: bloco 4, o homework do capítulo 28, com o simulador x86.py.</aside>
   </section>
   <section class="slide" id="homework" data-modelo="homework" data-max-palavras="70">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <h2 class="titulo topo">Homework do OSTEP</h2>
     <div class="esq">
       <p class="texto" style="max-width: none">O roteiro, na página da aula, segue o homework do capítulo 28.</p>
@@ -445,7 +445,7 @@ python3 x86.py -p flag.s -t 2 \
     <aside class="notas">25 minutos. O x86.py simula threads executando um assembly simplificado e mostra cada intercalação. Ele já está no repositório clonado na aula 1 (ostep-homework/threads-locks) e só precisa do python3; o script chama python, por isso o python3 na frente. O roteiro tem os programas na ordem do homework: flag.s, test-and-set.s, -P, ticket.s, yield.s e test-and-test-and-set.s. Quem terminar pode já responder as questões 6 a 10, nos slides seguintes.</aside>
   </section>
   <section class="slide" id="discutir-4" data-modelo="discussao" data-max-palavras="50">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <h2 class="titulo topo">Discussão</h2>
     <div class="perguntas">
       <p>Que intervalos -i quebraram o flag.s?</p>
@@ -454,13 +454,13 @@ python3 x86.py -p flag.s -t 2 \
     </div>
     <aside class="notas">10 minutos, junto com as questões 6 a 10. 1: com interrupções frequentes (por exemplo -i 2 e -i 3, com uma passada cada), a troca cai entre o teste e a escrita do flag. 2: contando os xchg (grep -c xchg): cada um além do necessário é giro. 3: o yield.s cede a CPU na primeira tentativa, em vez de girar até a interrupção; a economia aparece quando a dona do lock perde a CPU na seção crítica.</aside>
   </section>
-  <section class="slide" data-q="6" data-modelo="questao" data-max-palavras="200"><img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli"></section>
-  <section class="slide" data-q="7" data-modelo="questao" data-max-palavras="200"><img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli"></section>
-  <section class="slide" data-q="8" data-modelo="questao" data-max-palavras="200"><img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli"></section>
-  <section class="slide" data-q="9" data-modelo="questao" data-max-palavras="200"><img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli"></section>
-  <section class="slide" data-q="10" data-modelo="questao" data-max-palavras="200"><img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli"></section>
+  <section class="slide" data-q="6" data-modelo="questao" data-max-palavras="200"><img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli"></section>
+  <section class="slide" data-q="7" data-modelo="questao" data-max-palavras="200"><img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli"></section>
+  <section class="slide" data-q="8" data-modelo="questao" data-max-palavras="200"><img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli"></section>
+  <section class="slide" data-q="9" data-modelo="questao" data-max-palavras="200"><img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli"></section>
+  <section class="slide" data-q="10" data-modelo="questao" data-max-palavras="200"><img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli"></section>
   <section class="slide" id="para-pensar" data-modelo="para-pensar" data-max-palavras="50">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <h2 class="titulo topo">Para pensar</h2>
     <div class="perguntas">
       <p>Um lock justo é sempre mais rápido?</p>
@@ -485,6 +485,6 @@ python3 x86.py -p flag.s -t 2 \
 </script>
 <script src="questoes.js"></script>
 <script src="sims.js"></script>
-<script src="../../../design-system/js/deck.js"></script>
+<script src="../../.design-system/js/deck.js"></script>
 </body>
 </html>

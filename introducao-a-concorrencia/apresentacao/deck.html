@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>M16 - Introdução à concorrência</title>
-<link rel="stylesheet" href="../../../design-system/css/inteli-exec.css">
-<link rel="stylesheet" href="../../../design-system/assets/fonts/objetos/objetos.css">
+<link rel="stylesheet" href="../../.design-system/css/inteli-exec.css">
+<link rel="stylesheet" href="../../.design-system/assets/fonts/objetos/objetos.css">
 <style>
 /* Estilos sob medida deste deck. Cada slide sob medida tem um id e só se estiliza por ele;
    o que vale para vários slides fica aqui em cima, com prefixo .slide. */
@@ -178,7 +178,7 @@
 <main class="deck">
 
   <section class="slide capa sem-numero">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <div class="conteudo">
       <h1 class="titulo-capa">M16 - Introdução à concorrência</h1>
       <p class="autor">Prof. Nicola</p>
@@ -189,7 +189,7 @@
   <!-- ===================== 01 · O que é concorrência ===================== -->
 
   <section class="slide" id="livro" data-modelo="livro" data-max-palavras="30">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <img class="objeto capa-livro" src="assets/ostep-capa.jpg" alt="Capa do livro Operating Systems: Three Easy Pieces">
     <div class="lado-livro">
       <p class="subtitulo">Operating Systems: Three Easy Pieces</p>
@@ -200,12 +200,12 @@
   </section>
 
   <section class="slide agenda curta" data-agora="0">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <aside class="notas">Agenda. Primeiro, uma abstração nova dentro de um processo: a thread.</aside>
   </section>
 
   <section class="slide" id="pcs" data-modelo="pcs" data-max-palavras="60">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <h2 class="titulo topo">Mais de um ponto de execução</h2>
 <pre class="objeto cod">void *mythread(void *arg) {
     printf("%s\n", (char *) arg);
@@ -223,7 +223,7 @@ int main(int argc, char *argv[]) {
   </section>
 
   <section class="slide" id="espaco" data-modelo="espaco" data-max-palavras="40">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <h2 class="titulo topo">Uma pilha por thread</h2>
     <div class="col" style="left: 260px">
       <div class="barra">
@@ -246,7 +246,7 @@ int main(int argc, char *argv[]) {
   </section>
 
   <section class="slide" id="troca" data-modelo="troca-de-contexto" data-max-palavras="90">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <h2 class="titulo topo">Troca de contexto</h2>
     <div class="sim" data-sim="troca"></div>
     <i class="passo" data-passo="1"></i><i class="passo" data-passo="2"></i><i class="passo" data-passo="3"></i><i class="passo" data-passo="4"></i><i class="passo" data-passo="5"></i>
@@ -254,7 +254,7 @@ int main(int argc, char *argv[]) {
   </section>
 
   <section class="slide" id="t0" data-modelo="t0" data-max-palavras="60">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <h2 class="titulo topo">Quem roda primeiro?</h2>
 <pre class="objeto cod">int main(int argc, char *argv[]) {
     pthread_t p1, p2;
@@ -288,12 +288,12 @@ main: end</pre>
   <!-- ===================== 02 · Por que usar threads ===================== -->
 
   <section class="slide agenda curta" data-agora="1">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <aside class="notas">Agenda: por que usar threads. O OSTEP dá dois motivos (seção 26.1).</aside>
   </section>
 
   <section class="slide" id="paralelismo" data-modelo="linha-do-tempo" data-max-palavras="40">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <h2 class="titulo topo">Paralelismo</h2>
     <div class="tempo">
       <div class="fila"><span class="quem">CPU 0</span>
@@ -312,7 +312,7 @@ main: end</pre>
   </section>
 
   <section class="slide" id="es" data-modelo="linha-do-tempo" data-max-palavras="40">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <h2 class="titulo topo">Não ficar parado esperando E/S</h2>
     <div class="tempo">
       <div class="fila"><span class="quem">T1</span>
@@ -334,12 +334,12 @@ main: end</pre>
   <!-- ===================== 03 · Problemas da concorrência ===================== -->
 
   <section class="slide agenda curta" data-agora="2">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <aside class="notas">Agenda: os problemas que o compartilhamento traz (seções 26.3 a 26.6).</aside>
   </section>
 
   <section class="slide" id="t1" data-modelo="t1" data-max-palavras="60">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <h2 class="titulo topo">Um contador compartilhado</h2>
 <pre class="objeto cod">static volatile int counter = 0;
 
@@ -361,7 +361,7 @@ void *mythread(void *arg) {
   </section>
 
   <section class="slide" id="tres" data-modelo="tres-instrucoes" data-max-palavras="30">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <div class="conteudo">
       <p class="linha-c">counter = counter + 1;</p>
       <p class="seta-baixo passo" data-passo="1">↓</p>
@@ -373,13 +373,13 @@ void *mythread(void *arg) {
   </section>
 
   <section class="slide" id="sim-corrida" data-modelo="simulador" data-max-palavras="150">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <div class="sim" data-sim="corrida"></div>
     <aside class="notas">Fig. 26.7 do OSTEP. O counter começa em 50; cada thread vai executar as três instruções uma vez; o certo é 52. A turma é o escalonador: o botão de cada thread (step over) roda a próxima instrução dela. Cada thread tem o próprio eax (salvo no TCB quando ela sai da CPU). Primeiro rode T1 inteira e depois T2: 52. Recomece (↺) e peça um escalonamento que dê errado, por exemplo o da fig. 26.7: T1 faz mov e add, troca, T2 faz as três, T1 grava 51. Termos que aparecem: race condition (o resultado depende do momento das trocas) e seção crítica (o trecho que acessa a variável compartilhada, a barra coral). O que queremos é exclusão mútua: enquanto uma thread está na seção crítica, a outra não entra. Pergunta: quantos escalonamentos dão 52? E quantos dão 51?</aside>
   </section>
 
   <section class="slide" id="atomico" data-modelo="atomico" data-max-palavras="40">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <div class="conteudo">
       <p class="subtitulo">E se fosse uma instrução só?</p>
 <pre class="objeto cod">memory-add 0x8049a1c, $0x1</pre>
@@ -391,12 +391,12 @@ void *mythread(void *arg) {
   <!-- ===================== 04 · API de threads ===================== -->
 
   <section class="slide agenda curta" data-agora="3">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <aside class="notas">Agenda: a API de threads POSIX (cap. 27). Uns 20 minutos de conceitos e depois o roteiro do homework, uns 40 minutos.</aside>
   </section>
 
   <section class="slide" id="create" data-modelo="assinatura" data-max-palavras="60">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <h2 class="titulo topo">Criar uma thread</h2>
 <pre class="objeto cod">#include &lt;pthread.h&gt;
 
@@ -415,7 +415,7 @@ int pthread_create(<span class="m a1">pthread_t *thread</span>,
   </section>
 
   <section class="slide" id="join" data-modelo="codigo-explicado" data-max-palavras="60">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <h2 class="titulo topo">Esperar a thread terminar</h2>
 <pre class="objeto cod">void *mythread(void *arg) {
     myret_t *r = Malloc(sizeof(myret_t));
@@ -439,7 +439,7 @@ int main(int argc, char *argv[]) {
   </section>
 
   <section class="slide" id="oops" data-modelo="codigo-explicado" data-max-palavras="60">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <h2 class="titulo topo">Nunca devolva algo da pilha</h2>
 <pre class="objeto cod">void *mythread(void *arg) {
     myret_t oops;   <span class="c">// na pilha da thread</span>
@@ -459,7 +459,7 @@ int main(int argc, char *argv[]) {
   </section>
 
   <section class="slide" id="lock" data-modelo="codigo-explicado" data-max-palavras="60">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <h2 class="titulo topo">Locks</h2>
 <pre class="objeto cod"><span class="m a1">pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;</span>
 
@@ -477,7 +477,7 @@ counter = counter + 1;   <span class="c">// seção crítica</span>
   </section>
 
   <section class="slide" id="roteiro" data-modelo="roteiro" data-max-palavras="60">
-    <img class="logo" src="../../../design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
     <h2 class="titulo topo">Agora é com vocês</h2>
     <div class="esq">
       <p class="texto" style="max-width: none">Compilar com threads:</p>
@@ -506,6 +506,6 @@ counter = counter + 1;   <span class="c">// seção crítica</span>
   });
 </script>
 <script src="sims.js"></script>
-<script src="../../../design-system/js/deck.js"></script>
+<script src="../../.design-system/js/deck.js"></script>
 </body>
 </html>
