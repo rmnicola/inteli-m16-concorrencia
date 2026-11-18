@@ -195,11 +195,10 @@ void unlock(lock_t *mutex) {
   ],
   dissertativas: [
     {
-      enunciado: "Um painel mostra quantos pacotes um servidor já processou no dia. O servidor tem **8 CPUs** e **8 threads**, cada uma fixada numa CPU; a cada pacote, a thread executa `total = total + 1;` sobre a global `total`, **sem sincronização**. No pico (cerca de **16 milhões de pacotes por segundo**), o painel mostra **menos pacotes** que a placa de rede. O painel pode ficar **até 2.000 pacotes abaixo** do real, mas o total do fechamento do dia precisa ser exato.",
+      enunciado: "Um painel mostra quantos pacotes um servidor já processou no dia. O servidor tem **8 CPUs** e **8 threads**, cada uma fixada numa CPU; a cada pacote, a thread executa `total = total + 1;` sobre a global `total`, **sem sincronização**. No pico (cerca de **16 milhões de pacotes por segundo**), o painel mostra **menos pacotes** que a placa de rede.",
       itens: [
         "a) **Explique** a perda e **mostre uma intercalação** de duas threads, instrução por instrução, em que uma atualização se perde.",
         "b) **Proponha** um lock, **indique** a instrução atômica em que ele se apoia e **justifique** se é melhor girar ou dormir.",
-        "c) Com o lock, as threads passam a disputá-lo. **Proponha** um contador aproximado, **calcule** o maior S que respeita a tolerância, **discuta** S menor ou maior e **explique** como fechar o dia com o total exato.",
       ],
       fechamento: "Justifique cada decisão.",
     },
