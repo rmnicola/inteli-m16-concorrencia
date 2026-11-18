@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>M16 - Variáveis de condição</title>
+<link rel="stylesheet" href="../../.design-system/css/inteli-exec.css">
+<style>
+/* Roteiro de tópicos: uma lista só que se revela um item por passo. O item atual fica em destaque
+   (como o item atual da agenda) e os anteriores ficam apagados. Os itens vêm de TOPICOS, no script. */
+#topicos .itens { position: absolute; left: 240px; right: 240px; top: 0; bottom: 0;
+  display: flex; flex-direction: column; justify-content: center; gap: 6px; }
+#topicos .item { display: flex; align-items: center; gap: 36px; margin: 0; padding: 8px 30px; border-radius: 14px;
+  font-size: 36px; font-weight: 600; color: var(--texto-suave); transition: background .3s, color .3s; }
+#topicos .item .marcador { font-family: var(--f-destaque); font-weight: 700; font-size: 32px; width: 70px; flex: none; }
+#topicos .item.agora { background: var(--roxo); color: var(--branco); font-weight: 800; }
+#topicos .item.agora .marcador { color: var(--coral); }
+</style>
+</head>
+<body>
+<main class="deck">
+
+  <section class="slide capa sem-numero">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <div class="conteudo">
+      <h1 class="titulo-capa">M16 - Variáveis de condição</h1>
+      <p class="autor">Prof. Nicola</p>
+    </div>
+    <aside class="notas">Variáveis de condição (OSTEP, cap. 30), em tópicos: a seta revela um tópico por vez, o atual em destaque e os anteriores apagados. Cerca de uma hora, depois do post-mortem da P1. Abrir o PDF do capítulo (threads-cv.pdf) para mostrar as figuras.</aside>
+  </section>
+
+  <section class="slide" id="topicos" data-modelo="roteiro-topicos" data-max-palavras="40">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <aside class="notas">
+01 Esperar sem girar (introdução, figs. 30.1 e 30.2). Locks não bastam: às vezes uma thread precisa esperar uma condição, como o pai esperando o filho (um join feito à mão). Girar num flag done funciona, mas queima CPU.
+02 wait e signal (seção 30.1, fig. 30.3). A variável de condição é uma fila explícita de threads dormindo. pthread_cond_wait(&c, &m) assume o lock preso, solta o lock e dorme de forma atômica, e readquire o lock antes de voltar. Percorrer a fig. 30.3 nos dois casos: pai chega antes (dorme) e filho chega antes (pai vê done == 1 e nem dorme).
+03 O sinal perdido (figs. 30.4 e 30.5). Sem a variável de estado: o filho sinaliza antes de o pai dormir, ninguém estava na fila, e o pai dorme para sempre; a variável de condição não tem memória, quem tem é done. Sem o lock: o pai testa done == 0, é interrompido antes do wait, o filho põe 1 e sinaliza para ninguém. Quadro Always Hold The Lock While Signaling. Gancho com o lock de flag simples (Q08 da P1): a mesma corrida entre teste e ação.
+04 Produtor/consumidor (seção 30.2, figs. 30.6 e 30.7). Buffer limitado: fila de requisições de um servidor web, o pipe em grep foo file.txt | wc -l. Buffer de uma posição, put/get com count.
+05 if → while e a semântica Mesa (figs. 30.8 e 30.9). Uma CV e if, 1 produtor e 2 consumidores: Tc1 é acordado, Tc2 chega antes e consome; Tc1 volta e o buffer está vazio. O sinal é só uma dica de que o estado mudou (semântica Mesa, a de quase todo sistema; Hoare garante, mas é difícil de construir). Correção: while.
+06 Uma variável de condição só (figs. 30.10 e 30.11). Com while, mas uma CV: um consumidor acorda o outro consumidor em vez do produtor, e os três dormem. O signal precisa ter direção.
+07 Duas variáveis de condição (figs. 30.12 a 30.14). Produtor espera em empty e sinaliza fill; consumidor espera em fill e sinaliza empty. Buffer com várias posições (fill_ptr, use_ptr, MAX). Quadro Use While (Not If) For Conditions: o while também cobre despertares espúrios.
+08 Covering conditions e broadcast (seção 30.3, fig. 30.15). Alocador de memória de Lampson e Redell: quem libera 50 bytes acorda a thread que quer 100, e a que quer 10 continua dormindo. pthread_cond_broadcast acorda todas, e cada uma testa de novo; custo: acordar threads à toa. Broadcast para "fazer funcionar" costuma esconder um bug.
+09 As três regras (seção 30.4). Estado + lock + variável de condição sempre juntos; while, nunca if; segurar o lock no wait e no signal. Ponte: na próxima aula, semáforos, que Dijkstra criou a partir do produtor/consumidor. Se sobrar tempo, homework threads-cv, questão 8 (main-one-cv-while).
+    </aside>
+  </section>
+
+</main>
+<script>
+  /* Fonte única dos tópicos. Cada tópico é um passo: o primeiro já aparece no estado 0. */
+  const TOPICOS = [
+    "Esperar sem girar",
+    "<code>wait</code> e <code>signal</code>",
+    "O sinal perdido",
+    "Produtor/consumidor",
+    "<code>if</code> → <code>while</code>: semântica Mesa",
+    "Uma variável de condição só",
+    "Duas variáveis de condição",
+    "Covering conditions e <code>broadcast</code>",
+    "As três regras",
+  ];
+  const sec = document.getElementById("topicos");
+  const itens = document.createElement("div");
+  itens.className = "itens";
+  itens.innerHTML = TOPICOS.map((t, i) =>
+    `<p class="item passo" data-passo="${i}"><span class="marcador">${String(i + 1).padStart(2, "0")}</span><span>${t}</span></p>`).join("");
+  sec.append(itens);
+  /* O item do estado atual fica em destaque; os anteriores, apagados. */
+  const marcar = () => {
+    const k = parseInt(sec.dataset.estado || "0", 10);
+    sec.querySelectorAll(".item").forEach((p, i) => p.classList.toggle("agora", i === k));
+  };
+  new MutationObserver(marcar).observe(sec, { attributes: true, attributeFilter: ["data-estado"] });
+  marcar();
+</script>
+<script src="../../.design-system/js/deck.js"></script>
+</body>
+</html>

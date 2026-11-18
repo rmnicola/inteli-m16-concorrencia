@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Post-mortem da P1</title>
+<link rel="stylesheet" href="../../.design-system/css/inteli-exec.css">
+<link rel="stylesheet" href="../../.design-system/assets/fonts/objetos/objetos.css">
+<style>
+/* Lista de exercícios (modelo da skill lista-exercicios). Os slides são montados por lista-render.js a partir de
+   lista.js; este deck só traz o estilo. Uma melhoria aqui deve voltar para o modelo da skill. */
+.slide p { text-wrap: pretty; hyphens: none; }
+.slide code { font-family: var(--f-destaque); font-size: inherit; white-space: nowrap; }
+.slide button { font: 28px/1.3 var(--f-texto); color: var(--texto); cursor: pointer; border: 3px solid var(--cinza-escuro); border-radius: 10px; background: var(--branco); }
+.slide button:disabled { cursor: default; opacity: .45; }
+
+/* Questão: enunciado à esquerda, alternativas à direita */
+.slide.questao .q-esq { position: absolute; left: 120px; top: 130px; width: 650px; display: flex; flex-direction: column; gap: 20px; }
+.slide.questao .q-rot { position: static; }
+.slide.questao .q-enunciado { margin: 0; font-size: 28px; line-height: 1.45; }
+.slide.questao .q-dir { position: absolute; left: 810px; top: 130px; width: 670px; display: flex; flex-direction: column; gap: 12px; }
+.slide.questao .q-comando { margin: 0 0 4px; font-size: 30px; font-weight: 700; line-height: 1.3; }   /* as colunas começam abaixo do logo */
+.slide.questao button.q-alt { display: flex; gap: 16px; align-items: flex-start; text-align: left; padding: 8px 16px; }
+.slide.questao .q-alt .letra { font: 700 28px/1.3 var(--f-destaque); flex: none; }
+.slide.questao .q-alt b { font-weight: 700; }
+.slide.questao button.q-alt.escolhida { border-color: var(--roxo); outline: 3px solid var(--roxo); }
+.slide.questao button.q-alt.certa { background: var(--verde); }
+.slide.questao button.q-alt.errada { background: #ffe1e1; border-color: var(--coral); outline-color: var(--coral); }
+.slide.questao .q-acoes { display: flex; gap: 18px; align-items: center; margin-top: 6px; }
+.slide.questao button.q-confirmar { padding: 6px 28px; background: var(--roxo); border-color: var(--roxo); color: var(--branco); font-weight: 700; }
+.slide.questao button.q-volta { padding: 4px 18px; border-color: var(--roxo); background: transparent; }
+.slide.questao .q-acoes .q-volta { display: none; }
+.slide.questao.confirmou:not(.respondida) .q-acoes .q-volta { display: block; }
+
+/* Feedback: depois de confirmar, cobre o enunciado, com o topo e a altura da coluna das alternativas */
+.slide.questao .q-fb { display: none; position: absolute; left: 120px; top: 130px; width: 650px; box-sizing: border-box; flex-direction: column; gap: 18px;
+  background: var(--roxo); color: var(--branco); padding: 28px 32px; }
+.slide.questao.respondida .q-fb { display: flex; }
+.slide.questao.respondida .q-esq { visibility: hidden; }
+.slide.questao .q-fb p { margin: 0; font-size: 28px; line-height: 1.42; }
+.slide.questao .q-fb .q-fb-res { font: 700 34px/1.2 var(--f-texto); color: #ff8a8a; }
+.slide.questao .q-fb.acertou .q-fb-res { color: var(--verde); }
+.slide.questao .q-fb .q-fb-rev { margin-top: auto; color: var(--cinza-claro); }
+.slide.questao .q-fb code { color: var(--branco); }
+.slide.questao .q-fb a { color: var(--branco); text-decoration: underline; text-decoration-color: var(--verde); text-underline-offset: 4px; }
+.slide.questao .q-fb button.q-volta { align-self: flex-start; color: var(--branco); border-color: var(--branco); }
+
+/* Bloco de código no padrão do Expressive Code (Starlight), nas cores da identidade Inteli. O design system não tem
+   paleta de código: o fundo é o --roxo (o mesmo do terminal nos decks) e o realce usa as variáveis da paleta, todas
+   com contraste de pelo menos 5,5:1 sobre o roxo (critério do bloco de código do pecege-ons). O coral (4,2:1) só
+   aparece como forma, na aba; para texto, um coral claro derivado (#ff8a8a, 6,3:1), como o --coral-texto no fundo
+   claro. É um .objeto: pode usar fonte menor (--codigo-fonte, por bloco em lista.js). As linhas não quebram sozinhas. */
+.slide .bloco-codigo { --cd-fundo: var(--roxo); --cd-barra: #241e33; --cd-borda: #4a4163; --cd-texto: var(--cinza-claro); --coral-claro: #ff8a8a;
+  position: relative; box-shadow: none;   /* .objeto é absoluto no design system; aqui o bloco segue o fluxo do texto */
+  display: flex; flex-direction: column; background: var(--cd-fundo); border: 1px solid var(--cd-borda); border-radius: 8px; overflow: hidden; }
+.slide .bloco-codigo .codigo-barra { display: flex; align-items: stretch; height: 48px; background: var(--cd-barra); border-bottom: 1px solid var(--cd-borda); }
+.slide .bloco-codigo .codigo-arquivo { display: flex; align-items: center; padding: 0 22px; background: var(--cd-fundo); border-top: 3px solid var(--coral);
+  border-right: 1px solid var(--cd-borda); margin-bottom: -1px; font: 22px/1 "Courier Prime", monospace; color: var(--cd-texto); }
+.slide .bloco-codigo .copiar-codigo { margin: 6px 10px 6px auto; display: grid; place-items: center; width: 40px; padding: 4px; border: 1px solid var(--cd-borda); border-radius: 6px;
+  background: transparent; color: var(--cd-texto); }
+.slide .bloco-codigo .copiar-codigo svg { width: 24px; height: 24px; }
+.slide .bloco-codigo .codigo-pre { margin: 0; padding: 16px 22px; font: var(--codigo-fonte, 24px)/1.35 "Courier Prime", monospace; color: var(--cd-texto); white-space: pre; }
+.slide .bloco-codigo .codigo-pre code { font: inherit; white-space: pre; }
+.slide .tk-palavra { color: var(--coral-claro); font-weight: 700; }        /* 6,3:1 */
+.slide .tk-tipo { color: var(--verde); }                                   /* 7,8:1 */
+.slide .tk-funcao { color: var(--branco); font-weight: 700; }              /* 14,3:1 */
+.slide .tk-string, .slide .tk-numero, .slide .tk-constante { color: var(--lilas); }   /* 5,9:1 */
+.slide .tk-comentario { color: var(--cinza-escuro); font-style: italic; }   /* 7,0:1 */
+.slide .tk-operador, .slide .tk-pontuacao { color: var(--cinza-medio); }    /* 9,1:1 */
+
+/* Dissertativas, sem resposta */
+.slide.dissertativa .q-rot { left: 120px; top: 110px; }
+.slide.dissertativa .d-corpo { position: absolute; left: 120px; top: 180px; width: 1360px; display: flex; flex-direction: column; gap: 22px; }
+.slide.dissertativa .d-corpo p { margin: 0; font-size: 30px; line-height: 1.42; }
+.slide.dissertativa.com-codigo .d-corpo { width: 800px; }
+.slide.dissertativa .d-codigo { position: absolute; left: 960px; top: 180px; width: 520px; }
+.slide.dissertativa .d-item { padding-left: 1.4em; text-indent: -1.4em; }
+.slide.dissertativa .d-fechamento { color: var(--texto-suave); }
+</style>
+</head>
+<body>
+<!-- logo estático: o build o embute, e lista-render.js copia o src para cada slide -->
+<img id="logo-modelo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="" hidden>
+<main class="deck"></main>
+<script src="lista.js"></script>
+<script src="livro.js"></script>
+<script src="lista-render.js"></script>
+<script src="../../.design-system/js/deck.js"></script>
+</body>
+</html>

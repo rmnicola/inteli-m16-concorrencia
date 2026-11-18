@@ -128,11 +128,19 @@
       ]
     },
     {
-      "slug": "variaveis-de-condicao-e-semaforos",
-      "pasta": "variaveis-de-condicao-e-semaforos",
-      "titulo": "Variáveis de condição e semáforos",
+      "slug": "variaveis-de-condicao",
+      "pasta": "variaveis-de-condicao",
+      "titulo": "Variáveis de condição",
       "subtitulo": "Esperar por uma condição sem desperdiçar CPU",
-      "proposito": "Fazer threads esperarem umas pelas outras com variáveis de condição e semáforos, e resolver produtor/consumidor e leitores/escritores.",
+      "proposito": "Fazer uma thread esperar até que uma condição seja verdadeira, com wait e signal, e resolver o problema do produtor/consumidor.",
+      "apresentacao": "apresentacao/dist/index.html",
+      "roteiros": [
+        {
+          "rotulo": "Post-mortem da P1 (caps. 26 a 29)",
+          "tipo": "exercícios",
+          "pagina": "post-mortem/dist/index.html"
+        }
+      ],
       "referencias": [
         {
           "rotulo": "OSTEP, cap. 30: Condition Variables",
@@ -140,14 +148,23 @@
           "link": "https://pages.cs.wisc.edu/~remzi/OSTEP/threads-cv.pdf"
         },
         {
-          "rotulo": "OSTEP, cap. 31: Semaphores",
-          "tipo": "PDF",
-          "link": "https://pages.cs.wisc.edu/~remzi/OSTEP/threads-sema.pdf"
-        },
-        {
           "rotulo": "Código do homework (threads-cv)",
           "tipo": "GitHub",
           "link": "https://github.com/remzi-arpacidusseau/ostep-homework/tree/master/threads-cv"
+        }
+      ]
+    },
+    {
+      "slug": "semaforos",
+      "pasta": "semaforos",
+      "titulo": "Semáforos",
+      "subtitulo": "Uma primitiva só para exclusão mútua e ordenação",
+      "proposito": "Usar semáforos como lock e como variável de condição, e resolver produtor/consumidor, leitores/escritores e o jantar dos filósofos.",
+      "referencias": [
+        {
+          "rotulo": "OSTEP, cap. 31: Semaphores",
+          "tipo": "PDF",
+          "link": "https://pages.cs.wisc.edu/~remzi/OSTEP/threads-sema.pdf"
         },
         {
           "rotulo": "Código do homework (threads-sema)",
@@ -159,9 +176,9 @@
     {
       "slug": "bugs-de-concorrencia",
       "pasta": "bugs-de-concorrencia",
-      "titulo": "Bugs de concorrência",
-      "subtitulo": "Violações de atomicidade, de ordem e deadlock",
-      "proposito": "Reconhecer os padrões de bug que aparecem em sistemas reais e evitar deadlock pela ordem de aquisição dos locks.",
+      "titulo": "Bugs de concorrência e multiprocessadores",
+      "subtitulo": "Violações de atomicidade, de ordem, deadlock e false sharing",
+      "proposito": "Reconhecer os padrões de bug que aparecem em sistemas reais, evitar deadlock pela ordem de aquisição dos locks e ver como a coerência de cache faz um código correto deixar de escalar.",
       "referencias": [
         {
           "rotulo": "OSTEP, cap. 32: Common Concurrency Problems",
@@ -177,68 +194,16 @@
           "rotulo": "Código do homework (threads-bugs)",
           "tipo": "GitHub",
           "link": "https://github.com/remzi-arpacidusseau/ostep-homework/tree/master/threads-bugs"
-        }
-      ]
-    },
-    {
-      "slug": "multiprocessadores-e-memoria",
-      "pasta": "multiprocessadores-e-memoria",
-      "titulo": "Multiprocessadores e memória",
-      "subtitulo": "Caches, coerência, atomics e ordenação de memória",
-      "proposito": "Entender o que o hardware garante quando várias CPUs compartilham memória e por que um código correto pode não escalar.",
-      "referencias": [
+        },
         {
-          "rotulo": "OSTEP, cap. 10: Multiprocessor Scheduling",
+          "rotulo": "OSTEP, cap. 10: Multiprocessor Scheduling (seções 10.1 a 10.3)",
           "tipo": "PDF",
           "link": "https://pages.cs.wisc.edu/~remzi/OSTEP/cpu-sched-multi.pdf"
         },
         {
-          "rotulo": "Rust Atomics and Locks, cap. 2: Atomics",
+          "rotulo": "Rust Atomics and Locks, cap. 7: Understanding the Processor",
           "tipo": "livro online",
-          "link": "https://marabos.nl/atomics/atomics.html"
-        },
-        {
-          "rotulo": "Rust Atomics and Locks, cap. 3: Memory Ordering",
-          "tipo": "livro online",
-          "link": "https://marabos.nl/atomics/memory-ordering.html"
-        }
-      ]
-    },
-    {
-      "slug": "concorrencia-por-eventos",
-      "pasta": "concorrencia-por-eventos",
-      "titulo": "Concorrência por eventos",
-      "subtitulo": "Loop de eventos e select/poll",
-      "proposito": "Escrever um servidor concorrente com uma thread só e comparar essa abordagem com threads.",
-      "referencias": [
-        {
-          "rotulo": "OSTEP, cap. 33: Event-based Concurrency",
-          "tipo": "PDF",
-          "link": "https://pages.cs.wisc.edu/~remzi/OSTEP/threads-events.pdf"
-        },
-        {
-          "rotulo": "OSTEP, cap. 34: Summary Dialogue on Concurrency",
-          "tipo": "PDF",
-          "link": "https://pages.cs.wisc.edu/~remzi/OSTEP/threads-dialogue.pdf"
-        }
-      ]
-    },
-    {
-      "slug": "gpu-e-cuda",
-      "pasta": "gpu-e-cuda",
-      "titulo": "GPU e CUDA",
-      "subtitulo": "Paralelismo massivo com milhares de threads",
-      "proposito": "Levar o que vimos de threads e sincronização para a GPU: grids, blocos, memória da GPU e barreiras em CUDA.",
-      "referencias": [
-        {
-          "rotulo": "An Even Easier Introduction to CUDA",
-          "tipo": "artigo",
-          "link": "https://developer.nvidia.com/blog/even-easier-introduction-cuda/"
-        },
-        {
-          "rotulo": "CUDA C++ Programming Guide, caps. 1 e 2",
-          "tipo": "documentação",
-          "link": "https://docs.nvidia.com/cuda/cuda-c-programming-guide/"
+          "link": "https://marabos.nl/atomics/hardware.html"
         }
       ]
     }
