@@ -4,6 +4,7 @@
 window.LISTA = {
   titulo: "M16 - Post-mortem da P1",
   subtitulo: "Threads, locks e estruturas de dados com locks",
+  mostrarGrau: false,   // o post-mortem não mostra o grau das questões
   questoes: [
     // ---------------------------------------------------------------- Questão 05
     {

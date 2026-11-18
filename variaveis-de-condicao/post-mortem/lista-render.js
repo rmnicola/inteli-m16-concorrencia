@@ -101,7 +101,7 @@
     sec.append(logo());
 
     const esq = h("div", "q-esq");
-    esq.append(h("p", "rotulo-termo q-rot", `Questão ${n + 1} de ${total} · ${q.dif}`));
+    esq.append(h("p", "rotulo-termo q-rot", `Questão ${n + 1} de ${total}` + (L.mostrarGrau === false ? "" : ` · ${q.dif}`)));
     const en = h("p", "q-enunciado"); en.innerHTML = marcar(q.enunciado);
     esq.append(en);
     (q.codigo || []).forEach((c) => esq.append(blocoCodigo(c)));
@@ -156,7 +156,7 @@
     }
     sec._escolher = escolher;
     sec._confirmar = confirmar;
-    sec.append(esq, fb, dir, h("aside", "notas", `Resposta: ${LETRAS[q.gab]} (${q.dif}).`));
+    sec.append(esq, fb, dir, h("aside", "notas", `Resposta: ${LETRAS[q.gab]}` + (L.mostrarGrau === false ? "." : ` (${q.dif}).`)));
   });
 
   // teclas A a D escolhem e Enter confirma, no slide visível (o deck.js marca-o com .atual). Na captura, antes do
