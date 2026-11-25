@@ -158,8 +158,9 @@
       "slug": "semaforos",
       "pasta": "semaforos",
       "titulo": "Semáforos",
-      "subtitulo": "Uma primitiva só para exclusão mútua e ordenação",
-      "proposito": "Usar semáforos como lock e como variável de condição, e resolver produtor/consumidor, leitores/escritores e o jantar dos filósofos.",
+      "subtitulo": "Uma primitiva só para exclusão mútua, ordenação e contagem",
+      "proposito": "Entender o semáforo como um contador de recursos, ver como ele é feito com lock e variável de condição, e usá-lo como lock, para ordenação, no produtor/consumidor e em leitores/escritores.",
+      "apresentacao": "apresentacao/dist/index.html",
       "referencias": [
         {
           "rotulo": "OSTEP, cap. 31: Semaphores",

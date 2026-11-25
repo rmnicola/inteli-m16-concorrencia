@@ -1,0 +1,574 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>M16 - Semáforos</title>
+<link rel="stylesheet" href="../../.design-system/css/inteli-exec.css">
+<link rel="stylesheet" href="../../.design-system/assets/fonts/objetos/objetos.css">
+<style>
+/* Estilos sob medida deste deck (os mesmos ingredientes do deck de variáveis de condição). */
+
+/* Título no alto, à esquerda */
+.slide .topo { position: absolute; left: 120px; top: 56px; }
+
+/* Código do livro como objeto (Courier Prime). Cada .b é um bloco que entra num passo; o bloco que acabou de entrar
+   ganha uma barra coral (.agora). .g é um trecho grifado a partir do passo data-grifo (os grifos se acumulam). */
+.slide pre.cod { position: absolute; left: 120px; top: 170px; margin: 0; padding: 24px 36px; font: 26px/36px "Courier Prime", monospace; color: #1a1a1a; white-space: pre; }
+.slide pre.cod.menor { font-size: 22px; line-height: 32px; padding: 20px 24px; }
+.slide pre.cod.col-esq { left: 80px; }
+.slide pre.cod.col-dir { left: 815px; }
+.slide pre.cod .b { display: block; border-left: 6px solid transparent; margin-left: -20px; padding-left: 14px; transition: border-color .3s, opacity .4s ease, visibility .4s; }
+.slide pre.cod .b.esp { margin-top: 1lh; }
+.slide pre.cod .b.agora { border-left-color: var(--coral); }
+.slide pre.cod .c { color: #6b6b6b; }
+.slide pre.cod .g { border-radius: 4px; outline: 3px solid transparent; outline-offset: 2px; transition: outline-color .3s, background .3s; }
+.slide pre.cod .g.grifado { outline-color: var(--coral); background: #fff2f2; }
+
+/* Legendas que trocam a cada passo (todas na mesma célula da grade) */
+.slide .troca { position: absolute; display: grid; }
+.slide .troca > * { grid-area: 1 / 1; margin: 0; max-width: none; }
+.slide .lado { left: 1080px; top: 200px; width: 420px; }
+.slide .baixo { left: 120px; top: 650px; width: 1360px; }
+.slide .lado-termo { left: 1080px; top: 560px; }
+.slide .baixo-termo { left: 120px; top: 790px; }
+
+/* Valor de um semáforo, grande, que troca a cada passo */
+.slide .valor { left: 1080px; top: 190px; }
+.slide .valor > p { font: 700 72px/1 var(--f-destaque); }
+.slide .valor .nome-v { font: 28px "Courier Prime", monospace; color: var(--texto-suave); display: block; margin-bottom: 12px; }
+.slide .valor + .lado { top: 380px; }
+
+/* Cenas com threads: uma faixa fixa por thread, com o estado e o que ela faz; a faixa de quem está na CPU
+   (ou usando o recurso) fica roxa. À direita, o painel: semáforos, variáveis e buffer. */
+.slide .faixas { position: absolute; left: 120px; top: 200px; width: 900px; display: flex; flex-direction: column; gap: 20px; }
+.slide .fx { display: grid; grid-template-columns: 100px 220px 1fr; align-items: center; gap: 16px; height: 116px; box-sizing: border-box; padding: 0 20px;
+  border: 3px solid var(--roxo); border-radius: 14px; background: var(--branco); color: var(--roxo); transition: background .35s, color .35s, border-color .35s, box-shadow .35s; }
+.slide .fx .nome { font: 700 36px var(--f-texto); }
+.slide .fx .est { font: 700 28px var(--f-destaque); text-transform: uppercase; }
+.slide .fx .faz { font: 28px/1.3 "Courier Prime", monospace; white-space: nowrap; padding: 10px 16px; border-radius: 8px; min-height: 36px; }
+.slide .fx.roda { background: var(--roxo); color: var(--branco); }
+.slide .fx.roda .est { color: var(--verde); }
+.slide .fx.roda .faz { background: var(--branco); color: #1a1a1a; }
+.slide .fx.pronta .est, .slide .fx.pronta .faz { color: var(--texto-suave); }
+.slide .fx.dorme { background: var(--cinza-medio); border-style: dashed; border-color: var(--cinza-escuro); }
+.slide .fx.dorme .est { color: var(--coral-texto); }
+.slide .fx.dorme .faz { color: var(--texto-suave); }
+.slide .fx.ruim { box-shadow: 0 0 0 6px var(--coral); }
+.slide .fala-cena { position: absolute; left: 120px; top: 760px; width: 1360px; margin: 0; max-width: none; }
+.slide .painel { position: absolute; left: 1100px; top: 200px; width: 380px; display: flex; flex-direction: column; gap: 18px; }
+.slide .painel .sem { border: 3px solid var(--roxo); border-radius: 14px; background: var(--branco); padding: 12px 20px; transition: box-shadow .3s; }
+.slide .painel .sem.marca { box-shadow: 0 0 0 6px var(--coral); }
+.slide .painel .lin { display: flex; justify-content: space-between; align-items: baseline; }
+.slide .painel .n { font: 30px "Courier Prime", monospace; }
+.slide .painel .v { font: 700 44px var(--f-destaque); }
+.slide .painel .q { font-size: 28px; color: var(--coral-texto); font-weight: 700; margin-top: 4px; min-height: 36px; }
+.slide .painel .bufrow { display: flex; }
+.slide .painel .slot { width: 88px; height: 88px; border: 3px solid var(--roxo); margin-right: -3px; display: grid; place-items: center; font: 700 36px var(--f-destaque); background: var(--branco); position: relative; }
+.slide .painel .slot.marca { background: #fff2f2; color: var(--coral-texto); }
+.slide .painel .slot .fill { position: absolute; top: 96px; font: 700 28px "Courier Prime", monospace; color: var(--roxo); }
+
+/* #recurso: fichas que andam entre o semáforo e as threads */
+#recurso .faixas { top: 190px; gap: 14px; }
+#recurso .fx { height: 96px; grid-template-columns: 100px 200px 1fr; padding-right: 110px; }
+#recurso .pote { position: absolute; left: 1080px; top: 190px; width: 400px; height: 300px; box-sizing: border-box; border: 4px solid var(--roxo); border-radius: 18px; background: var(--branco); }
+#recurso .pote .cab { position: absolute; left: 24px; top: 18px; margin: 0; font: 28px "Courier Prime", monospace; color: var(--texto-suave); }
+#recurso .pote .val { position: absolute; left: 24px; top: 64px; margin: 0; font: 700 64px/1 var(--f-destaque); }
+#recurso .espera-cab { position: absolute; left: 1080px; top: 512px; margin: 0; font-size: 28px; color: var(--texto-suave); }
+#recurso .espera { position: absolute; left: 1080px; top: 560px; width: 400px; display: flex; gap: 12px; }
+#recurso .espera .chip { font: 700 30px var(--f-texto); padding: 10px 18px; border-radius: 10px; background: var(--cinza-medio); }
+#recurso .ficha { position: absolute; width: 60px; height: 60px; border-radius: 50%; background: var(--coral); box-shadow: inset 0 0 0 8px rgba(255, 255, 255, .45); transition: left .7s ease, top .7s ease; }
+
+#deadlock .rotulo-termo { left: 1100px; top: 680px; }
+.slide pre.cod.mini { font-size: 20px; line-height: 29px; padding: 20px 24px; }
+#rw .troca { left: 815px; top: 680px; width: 665px; }
+
+/* #api */
+#api .lado { top: 230px; }
+
+/* #throttle */
+#throttle .lado { top: 230px; }
+</style>
+</head>
+<body>
+<main class="deck">
+
+  <section class="slide capa sem-numero">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <div class="conteudo">
+      <h1 class="titulo-capa">M16 - Semáforos</h1>
+      <p class="autor">Prof. Nicola</p>
+    </div>
+    <aside class="notas">Semáforos (OSTEP, cap. 31), logo depois das variáveis de condição. Uma primitiva só que serve como lock e como variável de condição, criada por Dijkstra a partir do produtor/consumidor. Mesmo formato do deck anterior: código do capítulo em blocos e animações com as threads.</aside>
+  </section>
+
+  <section class="slide" id="recurso" data-modelo="cena-fichas" data-max-palavras="60">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">Um contador de recursos</h2>
+    <div class="faixas"></div>
+    <div class="pote"><p class="cab">semáforo s</p><p class="val"></p></div>
+    <p class="espera-cab">esperando</p>
+    <div class="espera"></div>
+    <p class="texto fala-cena"></p>
+    <aside class="notas">A abstração antes da API. Um semáforo é um número inteiro que conta unidades livres de um recurso: vagas num estacionamento, conexões com um banco, posições num buffer. Avance: cada thread que quer usar o recurso pega uma unidade (uma ficha), e o valor cai. Quando o valor chega a zero, o recurso se esgotou: quem chega espera. Quando alguém devolve uma unidade e há gente esperando, a unidade vai direto para uma delas; se não há ninguém, o valor sobe. Dois atos só: pegar (esperando se preciso) e devolver (acordando alguém se preciso). É isso que sem_wait e sem_post fazem, no próximo slide. Pergunta para a turma: e se o valor inicial for 1? (um lock). E se for 0? (ninguém passa até alguém devolver: ordem).</aside>
+  </section>
+
+  <section class="slide" id="api" data-modelo="codigo-em-blocos">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">sem_wait e sem_post</h2>
+<pre class="objeto cod"><span class="b passo" data-passo="0">#include &lt;semaphore.h&gt;
+sem_t s;
+<span class="g" data-grifo="4">sem_init(&amp;s, 0, 1);</span></span><span class="b esp passo" data-passo="1">int sem_wait(sem_t *s) {
+    decrement the value of semaphore s by one
+    wait if value of semaphore s is negative
+}</span><span class="b esp passo" data-passo="2">int sem_post(sem_t *s) {
+    increment the value of semaphore s by one
+    if there are one or more threads waiting, wake one
+}</span></pre>
+    <i class="passo" data-passo="3"></i><i class="passo" data-passo="4"></i>
+    <div class="troca lado">
+      <p class="texto passo" data-passo="0" data-sai="1">Declarar e dar o valor inicial: aqui, 1.</p>
+      <p class="texto passo" data-passo="1" data-sai="2">Pegar: decrementa e, se ficou negativo, dorme.</p>
+      <p class="texto passo" data-passo="2" data-sai="3">Devolver: incrementa e acorda uma que espera. Nunca espera.</p>
+      <p class="texto passo" data-passo="3" data-sai="4">Negativo, o valor é quantas threads esperam.</p>
+      <p class="texto passo" data-passo="4">O valor inicial decide o comportamento.</p>
+    </div>
+    <aside class="notas">Seção 31.1, figs. 31.1 e 31.2. Bloco 1: sem_init(&amp;s, 0, 1) cria o semáforo com valor 1; o 0 do meio diz que ele é compartilhado entre threads do mesmo processo (outro valor serve para sincronizar processos; ver a man page). Bloco 2: sem_wait decrementa e, se o valor ficou negativo, dorme; senão, retorna na hora. Várias threads podem estar dormindo no mesmo semáforo. Bloco 3: sem_post incrementa e, se há alguém esperando, acorda um; não espera condição nenhuma. Avance: com esta definição (a de Dijkstra), o valor negativo é o número de threads esperando. Avance: antes de usar, sempre o valor inicial, que decide o comportamento: é a pergunta que vai voltar em todos os exemplos. Por enquanto, as duas operações são atômicas; como garantir isso é o próximo slide. Nota histórica: Dijkstra chamou sem_wait de P() e sem_post de V(), de palavras holandesas (proberen/verhogen, depois prolaag/verhoog).</aside>
+  </section>
+
+  <section class="slide" id="zem" data-modelo="codigo-em-blocos">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">Por dentro: lock e variável de condição</h2>
+<pre class="objeto cod menor col-esq"><span class="b passo" data-passo="0">typedef struct __Zem_t {
+    int value;
+    pthread_cond_t cond;
+    pthread_mutex_t lock;
+} Zem_t;</span><span class="b esp passo" data-passo="1"><span class="c">// only one thread can call this</span>
+void Zem_init(Zem_t *s, int value) {
+    s-&gt;value = value;
+    Cond_init(&amp;s-&gt;cond);
+    Mutex_init(&amp;s-&gt;lock);
+}</span></pre>
+<pre class="objeto cod menor col-dir"><span class="b passo" data-passo="2">void Zem_wait(Zem_t *s) {
+    Mutex_lock(&amp;s-&gt;lock);
+    <span class="g" data-grifo="4">while (s-&gt;value &lt;= 0)</span>
+        Cond_wait(&amp;s-&gt;cond, &amp;s-&gt;lock);
+    <span class="g" data-grifo="4">s-&gt;value--;</span>
+    Mutex_unlock(&amp;s-&gt;lock);
+}</span><span class="b esp passo" data-passo="3">void Zem_post(Zem_t *s) {
+    Mutex_lock(&amp;s-&gt;lock);
+    s-&gt;value++;
+    Cond_signal(&amp;s-&gt;cond);
+    Mutex_unlock(&amp;s-&gt;lock);
+}</span></pre>
+    <i class="passo" data-passo="4"></i>
+    <div class="troca baixo" style="top: 720px;">
+      <p class="texto passo" data-passo="0" data-sai="1">As três peças de sempre: estado, variável de condição e lock.</p>
+      <p class="texto passo" data-passo="1" data-sai="2">O valor inicial vira o estado.</p>
+      <p class="texto passo" data-passo="2" data-sai="3">wait: dorme enquanto não há unidade livre; depois pega uma.</p>
+      <p class="texto passo" data-passo="3" data-sai="4">post: devolve uma e acorda alguém.</p>
+      <p class="texto passo" data-passo="4">Aqui o valor nunca fica negativo: só se decrementa depois da espera.</p>
+    </div>
+    <aside class="notas">Seção 31.8, fig. 31.17: o "Zemaphore", um semáforo construído com um lock e uma variável de condição. Mostrar logo de cara para tirar a mágica: é exatamente o padrão do capítulo anterior. Bloco 1: estado (value), CV e lock juntos. Bloco 2: o valor inicial. Bloco 3: Zem_wait pega o lock e dorme na CV enquanto value &lt;= 0 (while, por causa da semântica Mesa); quando passa, decrementa. Bloco 4: Zem_post incrementa e sinaliza. Avance: uma diferença sutil para o semáforo de Dijkstra: aqui o valor nunca fica abaixo de zero, porque só se decrementa depois de esperar; não vale o invariante "negativo = número de threads esperando". É mais fácil de implementar e é como o Linux faz. O contrário (construir variáveis de condição com semáforos) é bem mais difícil: gente experiente tentou no Windows e acumulou bugs.</aside>
+  </section>
+
+  <section class="slide" id="binario" data-modelo="codigo-em-blocos">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">Semáforo binário: um lock</h2>
+<pre class="objeto cod"><span class="b passo" data-passo="0">sem_t m;
+<span class="g" data-grifo="3">sem_init(&amp;m, 0, X);</span> <span class="c">// init to X; what should X be?</span></span><span class="b esp passo" data-passo="1">sem_wait(&amp;m);
+<span class="c">// critical section here</span>
+sem_post(&amp;m);</span></pre>
+    <i class="passo" data-passo="2"></i><i class="passo" data-passo="3"></i><i class="passo" data-passo="4"></i><i class="passo" data-passo="5"></i><i class="passo" data-passo="6"></i><i class="passo" data-passo="7"></i>
+    <div class="troca valor">
+      <p class="passo" data-passo="3" data-sai="4"><span class="nome-v">m</span>1</p>
+      <p class="passo" data-passo="4" data-sai="5"><span class="nome-v">m</span>0</p>
+      <p class="passo" data-passo="5" data-sai="6"><span class="nome-v">m</span>−1</p>
+      <p class="passo" data-passo="6" data-sai="7"><span class="nome-v">m</span>0</p>
+      <p class="passo" data-passo="7"><span class="nome-v">m</span>1</p>
+    </div>
+    <div class="troca lado">
+      <p class="texto passo" data-passo="1" data-sai="2">wait e post em volta da seção crítica.</p>
+      <p class="texto passo" data-passo="2" data-sai="3">Qual deve ser o valor inicial X?</p>
+      <p class="texto passo" data-passo="3" data-sai="4">X = 1: uma unidade, uma thread por vez.</p>
+      <p class="texto passo" data-passo="4" data-sai="5">T0 faz wait: 1 → 0, e entra.</p>
+      <p class="texto passo" data-passo="5" data-sai="6">T1 faz wait: 0 → −1, e dorme.</p>
+      <p class="texto passo" data-passo="6" data-sai="7">T0 sai com post: −1 → 0, e acorda T1.</p>
+      <p class="texto passo" data-passo="7">T1 sai com post: 0 → 1.</p>
+    </div>
+    <aside class="notas">Seção 31.2, figs. 31.3 a 31.5. O primeiro uso: semáforo como lock. Bloco 1: o semáforo m, com valor inicial X. Bloco 2: sem_wait e sem_post em volta da seção crítica. Avance: qual deve ser X? Deixe a turma responder antes. Avance: 1. Avance: T0 chama sem_wait, o valor vai a 0; como não é negativo, retorna e T0 entra. Avance: T1 tenta entrar enquanto T0 está dentro: o valor vai a −1, e T1 dorme. Avance: T0 sai com sem_post: o valor volta a 0 e T1 acorda. Avance: T1 roda a seção crítica e sai: o valor volta a 1. Como só há dois estados (preso, livre), o lock feito com semáforo se chama semáforo binário.</aside>
+  </section>
+
+  <section class="slide" id="ordem" data-modelo="codigo-em-blocos">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">Semáforo para ordenação</h2>
+<pre class="objeto cod"><span class="b passo" data-passo="0">sem_t s;</span><span class="b esp passo" data-passo="1">void *child(void *arg) {
+    printf("child\n");
+    <span class="g" data-grifo="5">sem_post(&amp;s);</span> <span class="c">// signal here: child is done</span>
+    return NULL;
+}</span><span class="b esp passo" data-passo="2">int main(int argc, char *argv[]) {
+    <span class="g" data-grifo="3">sem_init(&amp;s, 0, X);</span> <span class="c">// what should X be?</span>
+    printf("parent: begin\n");
+    pthread_t c;
+    Pthread_create(&amp;c, NULL, child, NULL);
+    <span class="g" data-grifo="4">sem_wait(&amp;s);</span> <span class="c">// wait here for child</span>
+    printf("parent: end\n");
+    return 0;
+}</span></pre>
+    <i class="passo" data-passo="3"></i><i class="passo" data-passo="4"></i><i class="passo" data-passo="5"></i><i class="passo" data-passo="6"></i>
+    <div class="troca lado">
+      <p class="texto passo" data-passo="1" data-sai="2">O filho avisa que terminou.</p>
+      <p class="texto passo" data-passo="2" data-sai="3">O pai espera o aviso.</p>
+      <p class="texto passo" data-passo="3" data-sai="4">Qual deve ser X? Zero.</p>
+      <p class="texto passo" data-passo="4" data-sai="5">Pai primeiro: 0 → −1, e dorme até o post do filho.</p>
+      <p class="texto passo" data-passo="5" data-sai="6">Filho primeiro: 0 → 1. O wait do pai leva a 0 e não dorme.</p>
+      <p class="texto passo" data-passo="6">Sem done: o valor do semáforo guarda o aviso.</p>
+    </div>
+    <aside class="notas">Seção 31.3, figs. 31.6 a 31.8. O pai espera o filho, o mesmo join da fig. 30.3, agora com um semáforo. Bloco 1: o semáforo. Bloco 2: o filho imprime e faz sem_post. Bloco 3: o pai cria o filho e faz sem_wait. Avance: qual o valor inicial? Deixe a turma pensar. É 0: o pai só deve passar depois de um post. Avance: caso 1, o pai chega primeiro ao wait: o valor vai a −1 e ele dorme; quando o filho roda, o post leva a 0 e acorda o pai. Avance: caso 2, o filho roda até o fim antes: o post leva a 1 e não acorda ninguém; quando o pai chega, o wait leva a 0 e ele segue sem dormir. Avance: compare com a variável de condição: lá precisávamos da variável done, porque a CV não guarda o sinal. O semáforo guarda: o valor é o estado. Uso típico: uma thread espera algo acontecer e outra faz acontecer e avisa.</aside>
+  </section>
+
+  <section class="slide" id="pc-buf" data-modelo="codigo-em-blocos">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">Produtor/consumidor, com semáforos</h2>
+<pre class="objeto cod"><span class="b passo" data-passo="0">int buffer[MAX];
+int fill = 0;
+int use = 0;</span><span class="b esp passo" data-passo="0">void put(int value) {
+    buffer[fill] = value;    <span class="c">// Line F1</span>
+    fill = (fill + 1) % MAX; <span class="c">// Line F2</span>
+}</span><span class="b esp passo" data-passo="0">int get() {
+    int tmp = buffer[use];   <span class="c">// Line G1</span>
+    use = (use + 1) % MAX;   <span class="c">// Line G2</span>
+    return tmp;
+}</span></pre>
+<pre class="objeto cod" style="left: 840px; top: 400px;"><span class="b passo" data-passo="1">sem_t empty;
+sem_t full;
+
+sem_init(&amp;empty, 0, MAX); <span class="c">// MAX are empty</span>
+sem_init(&amp;full, 0, 0);    <span class="c">// 0 are full</span></span></pre>
+    <div class="troca" style="left: 840px; top: 200px; width: 640px;">
+      <p class="texto passo" data-passo="0" data-sai="1">O buffer circular de MAX posições, sem count.</p>
+      <p class="texto passo" data-passo="1">Quem conta agora são dois semáforos: posições livres e ocupadas.</p>
+    </div>
+    <aside class="notas">Seção 31.4, figs. 31.9 e 31.10. De volta ao buffer limitado. O buffer é o mesmo da fig. 30.13, mas sem count: put grava em buffer[fill] e avança fill (linhas F1 e F2); get lê buffer[use] e avança use (G1 e G2). Avance: dois semáforos fazem a contagem. empty começa com MAX (todas as posições livres); full começa com 0 (nenhuma ocupada). É a abstração do começo: o produtor pega uma vaga livre (wait em empty) e devolve uma ocupada (post em full); o consumidor, o contrário.</aside>
+  </section>
+
+  <section class="slide" id="pc-v1" data-modelo="produtor-consumidor">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">Esperar vagas e dados</h2>
+<pre class="objeto cod menor col-esq"><span class="b passo" data-passo="0">void *producer(void *arg) {
+    int i;
+    for (i = 0; i &lt; loops; i++) {
+        sem_wait(&amp;empty);       <span class="c">// Line P1</span>
+        put(i);                 <span class="c">// Line P2</span>
+        sem_post(&amp;full);        <span class="c">// Line P3</span>
+    }
+}</span></pre>
+<pre class="objeto cod menor col-dir"><span class="b passo" data-passo="1">void *consumer(void *arg) {
+    int tmp = 0;
+    while (tmp != -1) {
+        sem_wait(&amp;full);        <span class="c">// Line C1</span>
+        tmp = get();            <span class="c">// Line C2</span>
+        sem_post(&amp;empty);       <span class="c">// Line C3</span>
+        printf("%d\n", tmp);
+    }
+}</span></pre>
+    <i class="passo" data-passo="2"></i><i class="passo" data-passo="3"></i>
+    <div class="troca baixo" style="top: 560px;">
+      <p class="texto passo" data-passo="0" data-sai="1">O produtor pega uma vaga, põe o item e avisa que há um dado.</p>
+      <p class="texto passo" data-passo="1" data-sai="2">O consumidor pega um dado, tira o item e devolve a vaga.</p>
+      <p class="texto passo" data-passo="2" data-sai="3">Com MAX = 1, um produtor e um consumidor: funciona.</p>
+      <p class="texto passo" data-passo="3">E com MAX = 10 e dois produtores?</p>
+    </div>
+    <aside class="notas">Fig. 31.10. Bloco 1: o produtor espera uma posição livre (P1), põe (P2) e avisa que há uma posição ocupada (P3). Bloco 2: o consumidor espera uma posição ocupada (C1), tira (C2) e devolve uma livre (C3). Avance: MAX = 1, um produtor e um consumidor, consumidor primeiro: ele faz wait em full (0 → −1) e dorme. O produtor faz wait em empty (1 → 0), põe e faz post em full (−1 → 0), acordando o consumidor. Se o produtor continuar, para em empty (0 → −1); se o consumidor rodar, consome. Funciona, e funciona com mais threads. Avance: e com MAX = 10 e vários produtores? Olhe put() de novo.</aside>
+  </section>
+
+  <section class="slide" id="corrida" data-modelo="cena-threads" data-max-palavras="60">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">Dois produtores, um dado perdido</h2>
+    <div class="faixas"></div>
+    <div class="painel"></div>
+    <p class="texto fala-cena"></p>
+    <aside class="notas">Fig. 31.10 com MAX = 10 e dois produtores, Pa e Pb. Os dois já passaram do sem_wait(&amp;empty): há vagas de sobra, então nada os segura. Avance: Pa começa o put: grava A em buffer[0] (F1). Avance: Pa é interrompida antes de avançar fill (F2); Pb roda e grava B em buffer[fill], que ainda é 0: A foi sobrescrito. Avance: Pb avança fill para 1. Avance: Pa volta e avança fill de novo, para 2. Resultado: o dado A se perdeu e buffer[1] nunca foi escrito; o consumidor vai ler lixo. Encher o buffer e avançar o índice é uma seção crítica: faltou exclusão mútua.</aside>
+  </section>
+
+  <section class="slide" id="pc-mutex-errado" data-modelo="produtor-consumidor">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">Exclusão mútua, primeira tentativa</h2>
+<pre class="objeto cod menor col-esq">void *producer(void *arg) {
+    int i;
+    for (i = 0; i &lt; loops; i++) {
+        <span class="g" data-grifo="1">sem_wait(&amp;mutex);</span>  <span class="c">// Line P0 (NEW LINE)</span>
+        sem_wait(&amp;empty);  <span class="c">// Line P1</span>
+        put(i);            <span class="c">// Line P2</span>
+        sem_post(&amp;full);   <span class="c">// Line P3</span>
+        <span class="g" data-grifo="1">sem_post(&amp;mutex);</span>  <span class="c">// Line P4 (NEW LINE)</span>
+    }
+}</pre>
+<pre class="objeto cod menor col-dir">void *consumer(void *arg) {
+    int i;
+    for (i = 0; i &lt; loops; i++) {
+        <span class="g" data-grifo="1">sem_wait(&amp;mutex);</span>  <span class="c">// Line C0 (NEW LINE)</span>
+        sem_wait(&amp;full);   <span class="c">// Line C1</span>
+        int tmp = get();   <span class="c">// Line C2</span>
+        sem_post(&amp;empty);  <span class="c">// Line C3</span>
+        <span class="g" data-grifo="1">sem_post(&amp;mutex);</span>  <span class="c">// Line C4 (NEW LINE)</span>
+        printf("%d\n", tmp);
+    }
+}</pre>
+    <i class="passo" data-passo="1"></i><i class="passo" data-passo="2"></i>
+    <div class="troca baixo">
+      <p class="texto passo" data-passo="1" data-sai="2">Um semáforo binário, mutex, em volta de tudo.</p>
+      <p class="texto passo" data-passo="2">Parece certo, mas o programa pode travar. Como?</p>
+    </div>
+    <aside class="notas">Fig. 31.11. A ideia certa (um lock em volta de put e get, feito com o semáforo binário mutex, valor inicial 1), no lugar errado. Avance: as linhas novas pegam o mutex antes de tudo e o soltam depois de tudo. Avance: não funciona: deadlock. Deixe a turma procurar a sequência de passos que trava antes de ir para o próximo slide.</aside>
+  </section>
+
+  <section class="slide" id="deadlock" data-modelo="cena-threads" data-max-palavras="60">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">Cada um espera o outro</h2>
+    <div class="faixas"></div>
+    <div class="painel"></div>
+    <p class="texto fala-cena"></p>
+    <p class="rotulo-termo baixo-termo passo" data-passo="4">deadlock</p>
+    <aside class="notas">O deadlock da fig. 31.11, com um produtor e um consumidor (MAX = 1). Avance: o consumidor roda primeiro e pega o mutex (C0): 1 → 0. Avance: não há dado; o wait em full (C1) leva full a −1 e o consumidor dorme, mas continua segurando o mutex. Avance: o produtor roda; ele tem um dado e poderia acordar o consumidor, mas a primeira coisa que faz é pedir o mutex (P0). Avance: o mutex está com o consumidor: 0 → −1, e o produtor dorme. O consumidor espera o produtor sinalizar full, e o produtor espera o consumidor soltar o mutex: um ciclo, deadlock clássico.</aside>
+  </section>
+
+  <section class="slide" id="pc-certo" data-modelo="produtor-consumidor">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">O mutex só em volta de put e get</h2>
+<pre class="objeto cod menor col-esq">void *producer(void *arg) {
+    int i;
+    for (i = 0; i &lt; loops; i++) {
+        sem_wait(&amp;empty);  <span class="c">// Line P1</span>
+        <span class="g" data-grifo="1">sem_wait(&amp;mutex);</span>  <span class="c">// Line P1.5 (lock)</span>
+        put(i);            <span class="c">// Line P2</span>
+        <span class="g" data-grifo="1">sem_post(&amp;mutex);</span>  <span class="c">// Line P2.5 (unlock)</span>
+        sem_post(&amp;full);   <span class="c">// Line P3</span>
+    }
+}</pre>
+<pre class="objeto cod menor col-dir">void *consumer(void *arg) {
+    int i;
+    for (i = 0; i &lt; loops; i++) {
+        sem_wait(&amp;full);   <span class="c">// Line C1</span>
+        <span class="g" data-grifo="1">sem_wait(&amp;mutex);</span>  <span class="c">// Line C1.5 (lock)</span>
+        int tmp = get();   <span class="c">// Line C2</span>
+        <span class="g" data-grifo="1">sem_post(&amp;mutex);</span>  <span class="c">// Line C2.5 (unlock)</span>
+        sem_post(&amp;empty);  <span class="c">// Line C3</span>
+        printf("%d\n", tmp);
+    }
+}</pre>
+    <i class="passo" data-passo="1"></i><i class="passo" data-passo="2"></i>
+    <div class="troca baixo">
+      <p class="texto passo" data-passo="1" data-sai="2">Reduzir o escopo do lock: a espera por vaga ou dado fica de fora.</p>
+      <p class="texto passo" data-passo="2">O buffer limitado com semáforos: um padrão para levar.</p>
+    </div>
+    <aside class="notas">Fig. 31.12, a solução que funciona. Avance: a correção é reduzir o escopo do lock: o mutex fica só em volta de put e get (a seção crítica de verdade), e as esperas em empty e full ficam de fora. Ninguém dorme segurando o mutex. Avance: é o buffer limitado, um padrão comum em programas com threads; entenda agora, use depois. Em código modular, o mutex ficaria dentro de put() e get().</aside>
+  </section>
+
+  <section class="slide" id="rw" data-modelo="codigo-em-blocos">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">Leitores e escritores</h2>
+<pre class="objeto cod mini col-esq"><span class="b passo" data-passo="0">typedef struct _rwlock_t {
+  sem_t lock;      <span class="c">// binary semaphore (basic lock)</span>
+  sem_t writelock; <span class="c">// allow ONE writer/MANY readers</span>
+  int   readers;   <span class="c">// #readers in critical section</span>
+} rwlock_t;</span><span class="b esp passo" data-passo="1">void rwlock_init(rwlock_t *rw) {
+  rw-&gt;readers = 0;
+  sem_init(&amp;rw-&gt;lock, 0, 1);
+  sem_init(&amp;rw-&gt;writelock, 0, 1);
+}</span><span class="b esp passo" data-passo="2">void rwlock_acquire_readlock(rwlock_t *rw) {
+  sem_wait(&amp;rw-&gt;lock);
+  rw-&gt;readers++;
+  <span class="g" data-grifo="5">if (rw-&gt;readers == 1)</span> <span class="c">// first reader gets writelock</span>
+    <span class="g" data-grifo="5">sem_wait(&amp;rw-&gt;writelock);</span>
+  sem_post(&amp;rw-&gt;lock);
+}</span></pre>
+<pre class="objeto cod mini col-dir"><span class="b passo" data-passo="3">void rwlock_release_readlock(rwlock_t *rw) {
+  sem_wait(&amp;rw-&gt;lock);
+  rw-&gt;readers--;
+  <span class="g" data-grifo="5">if (rw-&gt;readers == 0)</span> <span class="c">// last reader lets it go</span>
+    <span class="g" data-grifo="5">sem_post(&amp;rw-&gt;writelock);</span>
+  sem_post(&amp;rw-&gt;lock);
+}</span><span class="b esp passo" data-passo="4">void rwlock_acquire_writelock(rwlock_t *rw) {
+  sem_wait(&amp;rw-&gt;writelock);
+}
+
+void rwlock_release_writelock(rwlock_t *rw) {
+  sem_post(&amp;rw-&gt;writelock);
+}</span></pre>
+    <i class="passo" data-passo="5"></i>
+    <div class="troca">
+      <p class="texto passo" data-passo="0" data-sai="1">Um lock, um writelock e quantos leem agora.</p>
+      <p class="texto passo" data-passo="1" data-sai="2">Os dois semáforos começam em 1.</p>
+      <p class="texto passo" data-passo="2" data-sai="3">Entrar para ler: conta mais um leitor.</p>
+      <p class="texto passo" data-passo="3" data-sai="4">Sair de ler: conta menos um.</p>
+      <p class="texto passo" data-passo="4" data-sai="5">Escrever: só o writelock.</p>
+      <p class="texto passo" data-passo="5">O primeiro leitor tranca os escritores; o último destranca.</p>
+    </div>
+    <aside class="notas">Seção 31.5, fig. 31.13. Exemplo: uma lista com inserções (que mudam a estrutura) e buscas (que só leem). Várias buscas podem rodar juntas, desde que nenhuma inserção esteja em andamento. Bloco 1: lock (semáforo binário que protege readers), writelock (um escritor ou muitos leitores) e readers. Bloco 2: os dois semáforos começam em 1. Bloco 3: para ler, pega lock, incrementa readers e solta. Bloco 4: para sair, decrementa. Bloco 5: o escritor só usa o writelock, como um lock comum. Avance: o pulo do gato: o primeiro leitor a entrar também faz wait no writelock, e o último a sair faz post. Enquanto houver um leitor dentro, nenhum escritor entra; mais leitores entram à vontade.</aside>
+  </section>
+
+  <section class="slide" id="rw-cena" data-modelo="cena-threads" data-max-palavras="60">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">O escritor pode passar fome</h2>
+    <div class="faixas"></div>
+    <div class="painel"></div>
+    <p class="texto fala-cena"></p>
+    <aside class="notas">O lock de leitores e escritores em ação. Avance: R1 é o primeiro leitor: readers vai a 1 e ele faz wait no writelock (1 → 0). Avance: R2 entra junto: readers 2, sem tocar no writelock. Avance: W quer escrever: wait no writelock (0 → −1), e dorme. Avance: R3 chega depois de W e entra na frente, porque ainda há leitores dentro. Com leitores chegando sem parar, W nunca entra: os leitores podem matar o escritor de fome. Avance: R1 e R2 saem. Avance: R3, o último leitor, faz post no writelock (−1 → 0) e acorda W, que enfim escreve. Há soluções mais sofisticadas (impedir novos leitores quando um escritor espera), mas custam: locks de leitores e escritores têm mais overhead e muitas vezes não ganham de um lock simples. Quadro "Hill's Law": simples e burro pode ser melhor; tente primeiro o simples.</aside>
+  </section>
+
+  <section class="slide" id="throttle" data-modelo="codigo-em-blocos">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">Limitar quantas threads entram</h2>
+<pre class="objeto cod"><span class="b passo" data-passo="0">sem_t s;
+<span class="g" data-grifo="2">sem_init(&amp;s, 0, N);</span></span><span class="b esp passo" data-passo="1">sem_wait(&amp;s);
+<span class="c">// região que usa muita memória</span>
+sem_post(&amp;s);</span></pre>
+    <i class="passo" data-passo="2"></i>
+    <div class="troca lado">
+      <p class="texto passo" data-passo="0" data-sai="1">Centenas de threads, memória para poucas.</p>
+      <p class="texto passo" data-passo="1" data-sai="2">wait e post em volta da região pesada.</p>
+      <p class="texto passo" data-passo="2">Valor inicial N: no máximo N threads lá dentro, como as fichas do começo.</p>
+    </div>
+    <p class="rotulo-termo lado-termo passo" data-passo="2">throttling</p>
+    <aside class="notas">Seção 31.7, thread throttling. Centenas de threads trabalham em paralelo, mas numa parte do código cada uma aloca muita memória. Se todas entram nessa região ao mesmo tempo, a soma passa da memória física, a máquina começa a fazer swap (thrashing) e tudo fica lento. Avance: um semáforo resolve: wait antes da região, post depois. Avance: com valor inicial N, no máximo N threads ficam lá dentro ao mesmo tempo: é a animação do começo, com N fichas. É uma forma de controle de admissão (admission control). Fecho: um semáforo serve de lock (valor 1), de ordem (valor 0) e de contador de recursos (valor N).</aside>
+  </section>
+
+</main>
+<script>
+  /* Marca o bloco de código que acabou de entrar (.agora) e acende os grifos a partir do passo deles. */
+  document.querySelectorAll(".slide").forEach((sec) => {
+    const marcar = () => {
+      const k = parseInt(sec.dataset.estado || "0", 10);
+      const blocos = sec.querySelectorAll("pre.cod .b");
+      const entrou = [...blocos].filter((b) => parseInt(b.dataset.passo, 10) === k);
+      blocos.forEach((b) => b.classList.toggle("agora", blocos.length > entrou.length && entrou.includes(b)));
+      sec.querySelectorAll("[data-grifo]").forEach((g) => g.classList.toggle("grifado", k >= parseInt(g.dataset.grifo, 10)));
+    };
+    new MutationObserver(marcar).observe(sec, { attributes: true, attributeFilter: ["data-estado"] });
+    marcar();
+  });
+</script>
+<script>
+  /* #recurso: três fichas andam entre o semáforo e as threads. Cada passo diz onde está cada ficha
+     ("s" = no semáforo), o estado de cada thread, a fila de espera e a fala. est e faz se acumulam. */
+  (() => {
+    const sec = document.getElementById("recurso");
+    const T = ["T1", "T2", "T3", "T4", "T5"];
+    const PASSOS = [
+      { fichas: ["s", "s", "s"], fila: [], fala: "Um recurso com 3 unidades. O semáforo guarda quantas estão livres." },
+      { fichas: ["T1", "s", "s"], est: { T1: "usando" }, faz: { T1: "pegou uma" }, fila: [], fala: "T1 pega uma unidade: sobram 2." },
+      { fichas: ["T1", "T2", "s"], est: { T2: "usando" }, faz: { T2: "pegou uma" }, fila: [], fala: "T2 pega outra: sobra 1." },
+      { fichas: ["T1", "T2", "T3"], est: { T3: "usando" }, faz: { T3: "pegou a última" }, fila: [], fala: "T3 pega a última. O recurso se esgotou." },
+      { fichas: ["T1", "T2", "T3"], est: { T4: "espera" }, faz: { T4: "quer uma" }, fila: ["T4"], fala: "T4 chega e não há unidade livre: espera." },
+      { fichas: ["T1", "T2", "T3"], est: { T5: "espera" }, faz: { T5: "quer uma" }, fila: ["T4", "T5"], fala: "T5 também espera." },
+      { fichas: ["T4", "T2", "T3"], est: { T1: "pronta", T4: "usando" }, faz: { T1: "devolveu", T4: "recebeu a de T1" }, fila: ["T5"], fala: "T1 devolve a sua, e ela vai direto para T4." },
+      { fichas: ["T4", "T5", "T3"], est: { T2: "pronta", T5: "usando" }, faz: { T2: "devolveu", T5: "recebeu a de T2" }, fila: [], fala: "T2 devolve, e T5 recebe." },
+      { fichas: ["T4", "T5", "s"], est: { T3: "pronta" }, faz: { T3: "devolveu" }, fila: [], fala: "T3 devolve, e ninguém espera: sobra 1 livre." },
+    ];
+    const CLASSE = { pronta: "pronta", usando: "roda", espera: "dorme" };
+    const faixas = sec.querySelector(".faixas"), val = sec.querySelector(".val"), espera = sec.querySelector(".espera"), fala = sec.querySelector(".fala-cena");
+    faixas.innerHTML = T.map((t) => `<div class="fx pronta" data-t="${t}"><span class="nome">${t}</span><span class="est"></span><span class="faz"></span></div>`).join("");
+    const fichas = [0, 1, 2].map(() => { sec.insertAdjacentHTML("beforeend", `<div class="ficha"></div>`); return sec.lastElementChild; });
+    PASSOS.slice(1).forEach((_, i) => sec.insertAdjacentHTML("beforeend", `<i class="passo" data-passo="${i + 1}"></i>`));
+    const marcar = () => {
+      const k = Math.min(PASSOS.length - 1, parseInt(sec.dataset.estado || "0", 10));
+      const est = Object.fromEntries(T.map((t) => [t, "pronta"])), faz = {};
+      PASSOS.slice(0, k + 1).forEach((p) => { Object.assign(est, p.est || {}); Object.assign(faz, p.faz || {}); });
+      const p = PASSOS[k];
+      faixas.querySelectorAll(".fx").forEach((f) => {
+        const t = f.dataset.t;
+        f.className = `fx ${CLASSE[est[t]]}`;
+        f.querySelector(".est").textContent = est[t];
+        f.querySelector(".faz").textContent = faz[t] || "";
+      });
+      let livre = 0;
+      p.fichas.forEach((onde, j) => {
+        if (onde === "s") { fichas[j].style.left = 1110 + livre * 120 + "px"; fichas[j].style.top = "380px"; livre++; }
+        else { const i = T.indexOf(onde); fichas[j].style.left = "940px"; fichas[j].style.top = 190 + i * 110 + 18 + "px"; }
+      });
+      val.textContent = `valor = ${livre}`;
+      espera.innerHTML = p.fila.map((t) => `<span class="chip">${t}</span>`).join("");
+      fala.textContent = p.fala;
+    };
+    new MutationObserver(marcar).observe(sec, { attributes: true, attributeFilter: ["data-estado"] });
+    marcar();
+  })();
+</script>
+<script>
+  /* Cenas com threads. Cada passo muda só o que mudou: est e faz (que se acumulam), e o painel
+     (semáforos, variáveis e buffer), quem destacar (ruim, marca) e a fala, que valem só no passo. */
+  const CLASSE = { pronta: "pronta", roda: "roda", dorme: "dorme", lendo: "roda", escrevendo: "roda" };
+  const num = (v) => String(v).replace("-", "−");
+  function cena(id, threads, passos) {
+    const sec = document.getElementById(id);
+    const faixas = sec.querySelector(".faixas"), painel = sec.querySelector(".painel"), fala = sec.querySelector(".fala-cena");
+    faixas.innerHTML = threads.map((t) => `<div class="fx pronta" data-t="${t}"><span class="nome">${t}</span><span class="est"></span><span class="faz"></span></div>`).join("");
+    passos.slice(1).forEach((_, i) => sec.insertAdjacentHTML("beforeend", `<i class="passo" data-passo="${i + 1}"></i>`));
+    const marcar = () => {
+      const k = Math.min(passos.length - 1, parseInt(sec.dataset.estado || "0", 10));
+      const est = Object.fromEntries(threads.map((t) => [t, "pronta"])), faz = {};
+      passos.slice(0, k + 1).forEach((p) => { Object.assign(est, p.est || {}); Object.assign(faz, p.faz || {}); });
+      const p = passos[k], marca = p.marca || [];
+      faixas.querySelectorAll(".fx").forEach((f) => {
+        const t = f.dataset.t;
+        f.className = `fx ${CLASSE[est[t]]}${(p.ruim || []).includes(t) ? " ruim" : ""}`;
+        f.querySelector(".est").textContent = est[t];
+        f.querySelector(".faz").textContent = faz[t] || "";
+      });
+      let h = "";
+      (p.sems || []).forEach(([n, v, fila]) => {
+        h += `<div class="sem${marca.includes(n) ? " marca" : ""}"><div class="lin"><span class="n">${n}</span><span class="v">${num(v)}</span></div>` +
+          `<div class="q">${fila && fila.length ? "dorme: " + fila.join(", ") : ""}</div></div>`;
+      });
+      (p.vars || []).forEach(([n, v]) => {
+        h += `<div class="sem${marca.includes(n) ? " marca" : ""}"><div class="lin"><span class="n">${n}</span><span class="v">${num(v)}</span></div></div>`;
+      });
+      if (p.buf) {
+        h += `<div class="bufrow">` + p.buf.slots.map((x, i) =>
+          `<div class="slot${(p.buf.marca || []).includes(i) ? " marca" : ""}">${x}${i === p.buf.fill ? `<span class="fill">fill</span>` : ""}</div>`).join("") + `</div>`;
+      }
+      painel.innerHTML = h;
+      fala.textContent = p.fala;
+    };
+    new MutationObserver(marcar).observe(sec, { attributes: true, attributeFilter: ["data-estado"] });
+    marcar();
+  }
+
+  /* #corrida: dois produtores no put() sem exclusão mútua */
+  cena("corrida", ["Pa", "Pb"], [
+    { buf: { slots: ["", "", "", ""], fill: 0 }, fala: "MAX = 10, dois produtores. Os dois já passaram do sem_wait(&empty)." },
+    { est: { Pa: "roda" }, faz: { Pa: "F1: buffer[0] = A" }, buf: { slots: ["A", "", "", ""], fill: 0 }, fala: "Pa grava A em buffer[fill], que é 0." },
+    { est: { Pa: "pronta", Pb: "roda" }, faz: { Pa: "parou antes de F2", Pb: "F1: buffer[0] = B" }, buf: { slots: ["B", "", "", ""], fill: 0, marca: [0] }, ruim: ["Pb"],
+      fala: "Pa é interrompida antes de avançar fill. Pb grava B no mesmo lugar: A se perdeu." },
+    { faz: { Pb: "F2: fill = 1" }, buf: { slots: ["B", "", "", ""], fill: 1 }, fala: "Pb avança fill." },
+    { est: { Pb: "pronta", Pa: "roda" }, faz: { Pb: "", Pa: "F2: fill = 2" }, buf: { slots: ["B", "", "", ""], fill: 2, marca: [1] }, ruim: ["Pa"],
+      fala: "Pa volta e avança fill de novo. buffer[1] nunca foi escrito: o consumidor lê lixo." },
+  ]);
+
+  /* #deadlock: fig. 31.11, consumidor primeiro (MAX = 1) */
+  cena("deadlock", ["Tc", "Tp"], [
+    { sems: [["mutex", 1], ["full", 0], ["empty", 1]], fala: "Um consumidor e um produtor. O consumidor roda primeiro." },
+    { est: { Tc: "roda" }, faz: { Tc: "C0: sem_wait(&mutex)" }, sems: [["mutex", 0], ["full", 0], ["empty", 1]], marca: ["mutex"], fala: "Tc pega o mutex." },
+    { est: { Tc: "dorme" }, faz: { Tc: "C1: sem_wait(&full)" }, sems: [["mutex", 0], ["full", -1, ["Tc"]], ["empty", 1]], marca: ["full"],
+      fala: "Não há dado: Tc dorme em full, segurando o mutex." },
+    { est: { Tp: "roda" }, faz: { Tp: "P0: sem_wait(&mutex)" }, sems: [["mutex", 0], ["full", -1, ["Tc"]], ["empty", 1]], fala: "Tp tem um dado para pôr, mas primeiro pede o mutex…" },
+    { est: { Tp: "dorme" }, sems: [["mutex", -1, ["Tp"]], ["full", -1, ["Tc"]], ["empty", 1]], marca: ["mutex", "full"], ruim: ["Tc", "Tp"],
+      fala: "…que está com Tc. Tc espera Tp, e Tp espera Tc." },
+  ]);
+
+  /* #rw-cena: leitores e escritores, com o escritor passando fome */
+  cena("rw-cena", ["R1", "R2", "W", "R3"], [
+    { vars: [["readers", 0]], sems: [["writelock", 1]], fala: "Ninguém dentro. readers = 0, writelock = 1." },
+    { est: { R1: "lendo" }, faz: { R1: "primeiro leitor" }, vars: [["readers", 1]], sems: [["writelock", 0]], marca: ["writelock"], fala: "R1 é o primeiro leitor: pega o writelock." },
+    { est: { R2: "lendo" }, faz: { R2: "entra junto" }, vars: [["readers", 2]], sems: [["writelock", 0]], fala: "R2 entra junto: leitores compartilham." },
+    { est: { W: "dorme" }, faz: { W: "sem_wait(&writelock)" }, vars: [["readers", 2]], sems: [["writelock", -1, ["W"]]], marca: ["writelock"], fala: "W quer escrever e dorme no writelock." },
+    { est: { R3: "lendo" }, faz: { R3: "entra na frente de W" }, vars: [["readers", 3]], sems: [["writelock", -1, ["W"]]], ruim: ["W"], fala: "R3 chega depois de W e entra antes: o escritor pode esperar para sempre." },
+    { est: { R1: "pronta", R2: "pronta" }, faz: { R1: "saiu", R2: "saiu" }, vars: [["readers", 1]], sems: [["writelock", -1, ["W"]]], fala: "R1 e R2 saem." },
+    { est: { R3: "pronta", W: "escrevendo" }, faz: { R3: "último: post", W: "enfim escreve" }, vars: [["readers", 0]], sems: [["writelock", 0]], marca: ["writelock"],
+      fala: "R3, o último leitor, faz post no writelock e acorda W." },
+  ]);
+</script>
+<script src="../../.design-system/js/deck.js"></script>
+</body>
+</html>
