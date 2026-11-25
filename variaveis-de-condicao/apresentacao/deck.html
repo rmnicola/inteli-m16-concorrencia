@@ -5,16 +5,129 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>M16 - Variáveis de condição</title>
 <link rel="stylesheet" href="../../.design-system/css/inteli-exec.css">
+<link rel="stylesheet" href="../../.design-system/assets/fonts/objetos/objetos.css">
 <style>
-/* Roteiro de tópicos: uma lista só que se revela um item por passo. O item atual fica em destaque
-   (como o item atual da agenda) e os anteriores ficam apagados. Os itens vêm de TOPICOS, no script. */
-#topicos .itens { position: absolute; left: 240px; right: 240px; top: 0; bottom: 0;
-  display: flex; flex-direction: column; justify-content: center; gap: 6px; }
-#topicos .item { display: flex; align-items: center; gap: 36px; margin: 0; padding: 8px 30px; border-radius: 14px;
-  font-size: 36px; font-weight: 600; color: var(--texto-suave); transition: background .3s, color .3s; }
-#topicos .item .marcador { font-family: var(--f-destaque); font-weight: 700; font-size: 32px; width: 70px; flex: none; }
-#topicos .item.agora { background: var(--roxo); color: var(--branco); font-weight: 800; }
-#topicos .item.agora .marcador { color: var(--coral); }
+/* Estilos sob medida deste deck. O que vale para vários slides fica com prefixo .slide. */
+
+/* Título no alto, à esquerda */
+.slide .topo { position: absolute; left: 120px; top: 56px; }
+
+/* Código do livro como objeto (Courier Prime). Cada .b é um bloco que entra num passo;
+   o bloco que acabou de entrar ganha uma barra coral (.agora, posta pelo script).
+   .g é um trecho grifado a partir do passo data-grifo (os grifos se acumulam). */
+.slide pre.cod { position: absolute; margin: 0; padding: 24px 36px; font: 26px/36px "Courier Prime", monospace; color: #1a1a1a; white-space: pre; }
+.slide pre.cod.menor { font-size: 24px; line-height: 34px; padding: 20px 28px; }
+.slide pre.cod .b { display: block; border-left: 6px solid transparent; margin-left: -20px; padding-left: 14px; transition: border-color .3s, opacity .4s ease, visibility .4s; }
+.slide pre.cod .b.esp { margin-top: 1lh; }
+.slide pre.cod .b.agora { border-left-color: var(--coral); }
+.slide pre.cod .c { color: #6b6b6b; }
+.slide pre.cod .g { border-radius: 4px; outline: 3px solid transparent; outline-offset: 2px; transition: outline-color .3s, background .3s; }
+.slide pre.cod .g.grifado { outline-color: var(--coral); background: #fff2f2; }
+
+/* Legenda ao lado do código, que troca a cada passo (todas na mesma célula da grade) */
+.slide .troca { position: absolute; display: grid; }
+.slide .troca > * { grid-area: 1 / 1; margin: 0; max-width: none; }
+.slide .lado { left: 1060px; top: 200px; width: 440px; }
+
+/* #api: as duas chamadas, grandes, uma embaixo da outra */
+#api pre.cod { left: 120px; top: 230px; font-size: 32px; line-height: 48px; padding: 30px 40px; }
+#api .troca { left: 120px; top: 520px; width: 1360px; }
+
+.slide pre.cod { left: 120px; top: 170px; }
+.slide .lado-termo { left: 1060px; top: 480px; }
+/* código estreito: a legenda chega mais perto */
+#sem-lock .lado, #sem-done .lado { left: 780px; width: 560px; }
+#sem-lock .lado-termo { left: 780px; top: 400px; }
+
+/* #prodcons: simulador do buffer limitado. A alça na ponta do buffer muda MAX, com encaixe por posição */
+#prodcons .pc { position: absolute; inset: 0; }
+#prodcons .ator { position: absolute; top: 380px; width: 210px; height: 150px; font: 700 30px var(--f-texto); color: var(--branco); background: var(--roxo); border: none; border-radius: 14px; cursor: pointer; }
+#prodcons .ator:active { transform: scale(.97); }
+#prodcons .prod { left: 120px; }
+#prodcons .cons { left: 1300px; }
+#prodcons .estado { position: absolute; width: 210px; top: 548px; margin: 0; text-align: center; font: 700 28px var(--f-destaque); text-transform: uppercase; color: var(--coral-texto); }
+#prodcons .estado.ok { color: var(--roxo); }
+#prodcons .ep { left: 120px; }
+#prodcons .ec { left: 1300px; }
+#prodcons .buf { position: absolute; left: 370px; top: 395px; height: 120px; display: flex; outline: 4px solid var(--roxo); background: var(--branco); transition: width .15s; }
+#prodcons .slot { position: relative; width: 110px; height: 120px; box-sizing: border-box; border-right: 2px solid var(--cinza-medio); display: grid; place-items: center; }
+#prodcons .slot:last-child { border-right: none; }
+#prodcons .item { width: 76px; height: 76px; border-radius: 10px; background: var(--verde); display: grid; place-items: center; font: 700 32px var(--f-destaque); color: var(--roxo); }
+#prodcons .item.novo { animation: entra .25s ease; }
+@keyframes entra { from { transform: scale(.4); opacity: 0; } }
+#prodcons .ptr { position: absolute; left: 0; right: 0; text-align: center; font: 700 28px "Courier Prime", monospace; color: var(--roxo); }
+#prodcons .ptr.use { top: -56px; }
+#prodcons .ptr.fill { top: 132px; }
+#prodcons .alca { position: absolute; top: 395px; width: 36px; height: 120px; margin-left: 4px; background: var(--coral); border-radius: 0 10px 10px 0; cursor: ew-resize; display: grid; place-items: center; color: var(--branco); font: 700 28px var(--f-texto); touch-action: none; }
+#prodcons .info { position: absolute; left: 120px; right: 120px; top: 660px; text-align: center; font: 28px "Courier Prime", monospace; margin: 0; }
+
+/* Produtor e consumidor lado a lado (30.8 a 30.12): código menor, duas colunas, legenda embaixo */
+.slide pre.cod.menor { font-size: 22px; line-height: 32px; padding: 20px 24px; }
+.slide pre.cod.col-esq { left: 80px; }
+.slide pre.cod.col-dir { left: 815px; }
+.slide .baixo { left: 120px; top: 650px; width: 1360px; }
+.slide .baixo-termo { left: 120px; top: 780px; }
+
+/* #sem-sync: put/get (30.6) à esquerda e as threads (30.7) no meio */
+#sem-sync pre.cod.col-meio { left: 650px; }
+#sem-sync .lado { left: 1180px; width: 340px; }
+#sem-sync .lado-termo { left: 1180px; top: 560px; }
+
+/* #varias: put/get circulares (30.13) e o produtor de 30.14 */
+#varias pre.cod.col-dir { left: 700px; }
+#varias .baixo { left: 700px; top: 600px; width: 780px; }
+
+/* #alocador: o cenário da seção 30.3, montado pelo script a cada passo (fonte única ALOC) */
+#alocador .heap { position: absolute; left: 120px; top: 230px; width: 300px; }
+#alocador .heap .cab, #alocador .fila .cab, #alocador .livre .cab { font-size: 28px; color: var(--texto-suave); margin: 0 0 12px; }
+#alocador .heap .valor { font: 700 96px/1 var(--f-destaque); margin: 0; }
+#alocador .fila { position: absolute; left: 520px; top: 230px; width: 560px; }
+#alocador .cartoes { display: flex; gap: 24px; }
+#alocador .cartao { width: 250px; padding: 20px 22px; border: 3px solid var(--roxo); border-radius: 14px; background: var(--branco); box-sizing: border-box; transition: background .3s, color .3s, border-color .3s; }
+#alocador .cartao .nome { font: 700 34px var(--f-texto); margin: 0; }
+#alocador .cartao .pede { font: 28px "Courier Prime", monospace; margin: 6px 0 0; }
+#alocador .cartao .est { font: 700 28px var(--f-destaque); text-transform: uppercase; margin: 14px 0 0; color: var(--coral-texto); }
+#alocador .cartao.acorda { background: var(--roxo); color: var(--branco); }
+#alocador .cartao.acorda .est { color: var(--verde); }
+#alocador .cartao.feito { background: var(--verde); border-color: var(--verde); }
+#alocador .cartao.feito .est { color: var(--roxo); }
+#alocador .livre { position: absolute; left: 1180px; top: 230px; width: 300px; }
+#alocador .livre .chamada { font: 700 34px "Courier Prime", monospace; margin: 0; opacity: 0; transition: opacity .3s; }
+#alocador .livre .chamada.on { opacity: 1; }
+#alocador .livre .chamada .op { color: var(--coral-texto); }
+#alocador .fala { position: absolute; left: 120px; top: 620px; width: 1360px; margin: 0; max-width: none; }
+#alocador .lado-termo { left: 120px; top: 760px; }
+
+/* Cenas com threads (#canal, #fura-fila, #todos-dormem): uma faixa fixa por thread, com o estado e a instrução
+   que ela executa; a faixa de quem está na CPU fica roxa. À direita, a fila da variável de condição e o buffer. */
+.slide .faixas { position: absolute; left: 120px; top: 200px; width: 900px; display: flex; flex-direction: column; gap: 20px; }
+.slide .fx { display: grid; grid-template-columns: 100px 170px 1fr; align-items: center; gap: 16px; height: 116px; box-sizing: border-box; padding: 0 20px;
+  border: 3px solid var(--roxo); border-radius: 14px; background: var(--branco); color: var(--roxo); transition: background .35s, color .35s, border-color .35s, box-shadow .35s; }
+.slide .fx .nome { font: 700 36px var(--f-texto); }
+.slide .fx .est { font: 700 28px var(--f-destaque); text-transform: uppercase; }
+.slide .fx .faz { font: 28px/1.3 "Courier Prime", monospace; white-space: nowrap; padding: 10px 16px; border-radius: 8px; min-height: 36px; }
+.slide .fx.roda { background: var(--roxo); color: var(--branco); }
+.slide .fx.roda .est { color: var(--verde); }
+.slide .fx.roda .faz { background: var(--branco); color: #1a1a1a; }
+.slide .fx.pronta .est { color: var(--texto-suave); }
+.slide .fx.pronta .faz { color: var(--texto-suave); }
+.slide .fx.dorme { background: var(--cinza-medio); border-style: dashed; border-color: var(--cinza-escuro); }
+.slide .fx.dorme .est { color: var(--coral-texto); }
+.slide .fx.dorme .faz { color: var(--texto-suave); }
+.slide .fx.ruim { box-shadow: 0 0 0 6px var(--coral); }
+.slide .lado-cena { position: absolute; left: 1100px; top: 200px; width: 380px; }
+.slide .lado-cena .cab { font-size: 28px; color: var(--texto-suave); margin: 0 0 12px; }
+.slide .buf-cena { display: flex; align-items: center; gap: 24px; margin-bottom: 44px; }
+.slide .buf-cena .slot1 { width: 96px; height: 96px; border: 4px solid var(--roxo); background: var(--branco); display: grid; place-items: center; box-sizing: border-box; }
+.slide .buf-cena .item { width: 64px; height: 64px; border-radius: 10px; background: var(--verde); }
+.slide .buf-cena .cnt { font: 28px "Courier Prime", monospace; }
+.slide .fila-cv { min-height: 240px; border: 3px dashed var(--cinza-escuro); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 12px; box-sizing: border-box; }
+.slide .fila-cv .chip { font: 700 30px var(--f-texto); padding: 12px 18px; border-radius: 10px; background: var(--cinza-medio); color: var(--roxo); }
+.slide .fila-cv .vazia { font-size: 28px; color: var(--texto-suave); margin: 0; }
+.slide .fala-cena { position: absolute; left: 120px; top: 760px; width: 1360px; margin: 0; max-width: none; }
+.slide .lado-termo-cena { left: 1100px; top: 690px; }
+#prodcons .reset { position: absolute; left: 1424px; top: 660px; width: 56px; height: 56px; border-radius: 50%; border: 3px solid var(--roxo); background: transparent; color: var(--roxo); font: 700 32px/1 var(--f-texto); cursor: pointer; }
+#prodcons .fala-pc { position: absolute; left: 120px; right: 120px; top: 740px; text-align: center; margin: 0; max-width: none; }
 </style>
 </head>
 <body>
@@ -26,51 +139,580 @@
       <h1 class="titulo-capa">M16 - Variáveis de condição</h1>
       <p class="autor">Prof. Nicola</p>
     </div>
-    <aside class="notas">Variáveis de condição (OSTEP, cap. 30), em tópicos: a seta revela um tópico por vez, o atual em destaque e os anteriores apagados. Cerca de uma hora, depois do post-mortem da P1. Abrir o PDF do capítulo (threads-cv.pdf) para mostrar as figuras.</aside>
+    <aside class="notas">Variáveis de condição (OSTEP, cap. 30), com os códigos do próprio capítulo. Em cada slide o código entra em blocos, na ordem da explicação; a barra coral marca o bloco que acabou de entrar. Logo depois, o deck de semáforos (cap. 31).</aside>
   </section>
 
-  <section class="slide" id="topicos" data-modelo="roteiro-topicos" data-max-palavras="40">
+  <section class="slide" id="espera" data-modelo="codigo-em-blocos">
     <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
-    <aside class="notas">
-01 Esperar sem girar (introdução, figs. 30.1 e 30.2). Locks não bastam: às vezes uma thread precisa esperar uma condição, como o pai esperando o filho (um join feito à mão). Girar num flag done funciona, mas queima CPU.
-02 wait e signal (seção 30.1, fig. 30.3). A variável de condição é uma fila explícita de threads dormindo. pthread_cond_wait(&c, &m) assume o lock preso, solta o lock e dorme de forma atômica, e readquire o lock antes de voltar. Percorrer a fig. 30.3 nos dois casos: pai chega antes (dorme) e filho chega antes (pai vê done == 1 e nem dorme).
-03 O sinal perdido (figs. 30.4 e 30.5). Sem a variável de estado: o filho sinaliza antes de o pai dormir, ninguém estava na fila, e o pai dorme para sempre; a variável de condição não tem memória, quem tem é done. Sem o lock: o pai testa done == 0, é interrompido antes do wait, o filho põe 1 e sinaliza para ninguém. Quadro Always Hold The Lock While Signaling. Gancho com o lock de flag simples (Q08 da P1): a mesma corrida entre teste e ação.
-04 Produtor/consumidor (seção 30.2, figs. 30.6 e 30.7). Buffer limitado: fila de requisições de um servidor web, o pipe em grep foo file.txt | wc -l. Buffer de uma posição, put/get com count.
-05 if → while e a semântica Mesa (figs. 30.8 e 30.9). Uma CV e if, 1 produtor e 2 consumidores: Tc1 é acordado, Tc2 chega antes e consome; Tc1 volta e o buffer está vazio. O sinal é só uma dica de que o estado mudou (semântica Mesa, a de quase todo sistema; Hoare garante, mas é difícil de construir). Correção: while.
-06 Uma variável de condição só (figs. 30.10 e 30.11). Com while, mas uma CV: um consumidor acorda o outro consumidor em vez do produtor, e os três dormem. O signal precisa ter direção.
-07 Duas variáveis de condição (figs. 30.12 a 30.14). Produtor espera em empty e sinaliza fill; consumidor espera em fill e sinaliza empty. Buffer com várias posições (fill_ptr, use_ptr, MAX). Quadro Use While (Not If) For Conditions: o while também cobre despertares espúrios.
-08 Covering conditions e broadcast (seção 30.3, fig. 30.15). Alocador de memória de Lampson e Redell: quem libera 50 bytes acorda a thread que quer 100, e a que quer 10 continua dormindo. pthread_cond_broadcast acorda todas, e cada uma testa de novo; custo: acordar threads à toa. Broadcast para "fazer funcionar" costuma esconder um bug.
-09 As três regras (seção 30.4). Estado + lock + variável de condição sempre juntos; while, nunca if; segurar o lock no wait e no signal. Ponte: na próxima aula, semáforos, que Dijkstra criou a partir do produtor/consumidor. Se sobrar tempo, homework threads-cv, questão 8 (main-one-cv-while).
-    </aside>
+    <h2 class="titulo topo">O pai espera o filho</h2>
+<pre class="objeto cod"><span class="b passo" data-passo="0">volatile int done = 0;</span><span class="b esp passo" data-passo="1">void *child(void *arg) {
+    printf("child\n");
+    done = 1;
+    return NULL;
+}</span><span class="b esp passo" data-passo="2">int main(int argc, char *argv[]) {
+    printf("parent: begin\n");
+    pthread_t c;
+    Pthread_create(&amp;c, NULL, child, NULL); <span class="c">// child</span>
+    <span class="g" data-grifo="3">while (done == 0)</span>
+        <span class="g" data-grifo="3">; <span class="c">// spin</span></span>
+    printf("parent: end\n");
+    return 0;
+}</span></pre>
+    <i class="passo" data-passo="3"></i>
+    <div class="troca lado">
+      <p class="texto passo" data-passo="3">Funciona, mas o pai gira: queima CPU só esperando.</p>
+    </div>
+    <aside class="notas">Introdução do cap. 30, figs. 30.1 e 30.2. Locks não bastam: às vezes uma thread precisa esperar uma condição. Aqui, o pai espera o filho terminar (um join feito à mão); a saída desejada é parent: begin, child, parent: end. Bloco 1: a variável compartilhada done. Bloco 2: o filho marca done = 1 ao terminar. Bloco 3: o pai cria o filho e gira até done virar 1. Avance: funciona, mas é muito ineficiente, e em alguns casos pode até ser incorreto. O que queremos: pôr o pai para dormir até a condição ser verdadeira. Como esperar por uma condição?</aside>
+  </section>
+
+  <section class="slide" id="api" data-modelo="codigo-em-blocos">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">wait e signal</h2>
+<pre class="objeto cod">pthread_cond_wait(<span class="g" data-grifo="1">pthread_cond_t *c</span>, <span class="g" data-grifo="2">pthread_mutex_t *m</span>);
+pthread_cond_signal(<span class="g" data-grifo="3">pthread_cond_t *c</span>);</pre>
+    <i class="passo" data-passo="1"></i><i class="passo" data-passo="2"></i><i class="passo" data-passo="3"></i>
+    <div class="troca">
+      <p class="texto passo" data-passo="1" data-sai="2">A variável de condição: uma fila onde a thread dorme.</p>
+      <p class="texto passo" data-passo="2" data-sai="3">O lock, já preso: wait solta o lock e dorme, de forma atômica, e pega o lock de novo antes de voltar.</p>
+      <p class="texto passo" data-passo="3">Acorda uma das threads que dormem nessa fila.</p>
+    </div>
+    <aside class="notas">Seção 30.1. Uma variável de condição é uma fila explícita onde as threads se colocam quando o estado não é o desejado (esperando pela condição); outra thread, quando muda esse estado, acorda uma delas (sinalizando a condição). A ideia vem dos "private semaphores" de Dijkstra; o nome vem de Hoare, nos monitores. Declara-se com pthread_cond_t c e precisa ser inicializada. Passo 1: c é a fila. Passo 2: m é o mutex, que precisa estar preso na chamada; o wait o solta ao pôr a thread para dormir, de forma atômica, e o readquire antes de retornar. Essa complexidade existe para evitar corridas na hora de dormir (vamos ver uma daqui a pouco). Passo 3: signal acorda uma thread que dorme em c; se não houver nenhuma, não faz nada. Daqui em diante, wait() e signal() para encurtar.</aside>
+  </section>
+
+  <section class="slide" id="canal" data-modelo="cena-threads" data-max-palavras="50">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">Dormir numa variável de condição</h2>
+    <div class="lado-cena"><p class="cab">fila de c</p><div class="fila-cv"></div></div>
+    <div class="faixas"></div>
+    <p class="texto fala-cena"></p>
+    <aside class="notas">Animação do wait e do signal (o lock fica implícito: quem chama wait ou signal o segura). Cada faixa é uma thread; a roxa é a que está na CPU, e a janela mostra o que ela executa. À direita, a fila da variável de condição c. T1, T2 e T3 rodam, uma de cada vez, chamam wait e vão dormir na fila: o escalonador não as escolhe mais. T4 roda e chama signal: uma thread da fila, qualquer uma (aqui sorteada quando o deck abre), acorda e passa a PRONTA, mas não roda na hora; só quando o escalonador a escolhe ela volta do wait (com o lock). Cada signal acorda no máximo uma. Neste exemplo, quem acorda também sinaliza, e acorda a próxima. Quem sinaliza pode ser qualquer thread que esteja rodando; T4 poderia chamar signal três vezes e acordar as três, uma por chamada. A última sinaliza com a fila vazia: nada acontece, e o sinal não fica guardado para quem chegar depois (é o problema do exemplo sem done).</aside>
+  </section>
+
+  <section class="slide" id="join" data-modelo="codigo-em-blocos">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">Esperar sem girar</h2>
+<pre class="objeto cod"><span class="b passo" data-passo="0">int done = 0;
+pthread_mutex_t m = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t c = PTHREAD_COND_INITIALIZER;</span><span class="b esp passo" data-passo="1">void thr_exit() {
+    Pthread_mutex_lock(&amp;m);
+    done = 1;
+    Pthread_cond_signal(&amp;c);
+    Pthread_mutex_unlock(&amp;m);
+}</span><span class="b esp passo" data-passo="2">void thr_join() {
+    Pthread_mutex_lock(&amp;m);
+    while (done == 0)
+        Pthread_cond_wait(&amp;c, &amp;m);
+    Pthread_mutex_unlock(&amp;m);
+}</span></pre>
+    <div class="troca lado">
+      <p class="texto passo" data-passo="0" data-sai="1">Estado, lock e variável de condição.</p>
+      <p class="texto passo" data-passo="1" data-sai="2">O filho chama ao terminar: muda o estado e sinaliza, com o lock.</p>
+      <p class="texto passo" data-passo="2">O pai chama para esperar: dorme enquanto done == 0.</p>
+    </div>
+    <aside class="notas">Fig. 30.3. O filho chama thr_exit() depois de imprimir "child"; o main cria o filho e chama thr_join(). Bloco 1: as três peças que andam sempre juntas: a variável de estado done, o lock m e a variável de condição c. Bloco 2: thr_exit pega o lock, põe done = 1, sinaliza e solta. Bloco 3: thr_join pega o lock e, enquanto done for 0, dorme no wait (que solta o lock). Dois casos. (1) O pai roda primeiro (uma CPU): pega o lock, vê done == 0 e dorme, soltando o lock; o filho roda, imprime, pega o lock, põe done = 1 e sinaliza; o pai volta do wait com o lock, sai do laço, solta e imprime "parent: end". (2) O filho roda primeiro: põe done = 1 e sinaliza para ninguém; o pai chega, vê done == 1 e nem dorme. Por que while e não if? Aqui parece desnecessário, mas é sempre boa ideia; vamos ver por quê.</aside>
+  </section>
+
+  <section class="slide" id="sem-lock" data-modelo="codigo-em-blocos">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">Por que o lock?</h2>
+<pre class="objeto cod"><span class="b passo" data-passo="0">void thr_exit() {
+    <span class="g" data-grifo="3">done = 1;</span>
+    <span class="g" data-grifo="3">Pthread_cond_signal(&amp;c);</span>
+}</span><span class="b esp passo" data-passo="1">void thr_join() {
+    <span class="g" data-grifo="2">if (done == 0)</span>
+        <span class="g" data-grifo="4">Pthread_cond_wait(&amp;c);</span>
+}</span></pre>
+    <i class="passo" data-passo="2"></i><i class="passo" data-passo="3"></i><i class="passo" data-passo="4"></i>
+    <div class="troca lado">
+      <p class="texto passo" data-passo="0" data-sai="1">A mesma ideia, sem o lock.</p>
+      <p class="texto passo" data-passo="2" data-sai="3">O pai vê done == 0 e é interrompido antes do wait.</p>
+      <p class="texto passo" data-passo="3" data-sai="4">O filho põe done = 1 e sinaliza para ninguém.</p>
+      <p class="texto passo" data-passo="4">O pai volta e dorme para sempre.</p>
+    </div>
+    <p class="rotulo-termo lado-termo passo" data-passo="4">condição de corrida</p>
+    <aside class="notas">Fig. 30.5. Por que o wait recebe o lock? Esta versão não usa lock nenhum (não é código real: o pthread_cond_wait sempre exige o mutex; o capítulo finge que não, só para o contraexemplo). Bloco 1: o filho muda done e sinaliza. Bloco 2: o pai testa done e dorme. Avance: o pai vê done == 0 e vai dormir, mas é interrompido entre o teste e o wait. Avance: o filho roda, põe done = 1 e sinaliza; ninguém está na fila, ninguém acorda. Avance: o pai volta, chama wait e dorme para sempre. É a mesma corrida entre testar e agir do lock com flag simples: o teste de done e o ato de dormir precisam ser atômicos, e é por isso que o wait solta o lock e dorme numa operação só. Quadro "Always hold the lock while signaling": segure o lock no signal e no wait, e você estará sempre seguro.</aside>
+  </section>
+
+  <section class="slide" id="sem-done" data-modelo="codigo-em-blocos">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">Por que o done?</h2>
+<pre class="objeto cod"><span class="b passo" data-passo="0">void thr_exit() {
+    Pthread_mutex_lock(&amp;m);
+    <span class="g" data-grifo="2">Pthread_cond_signal(&amp;c);</span>
+    Pthread_mutex_unlock(&amp;m);
+}</span><span class="b esp passo" data-passo="1">void thr_join() {
+    Pthread_mutex_lock(&amp;m);
+    <span class="g" data-grifo="3">Pthread_cond_wait(&amp;c, &amp;m);</span>
+    Pthread_mutex_unlock(&amp;m);
+}</span></pre>
+    <i class="passo" data-passo="2"></i><i class="passo" data-passo="3"></i>
+    <div class="troca lado">
+      <p class="texto passo" data-passo="0" data-sai="1">Agora com o lock, mas sem o estado.</p>
+      <p class="texto passo" data-passo="2" data-sai="3">O filho roda primeiro e sinaliza: não há ninguém na fila.</p>
+      <p class="texto passo" data-passo="3">O pai chega e dorme para sempre: a variável de condição não guarda o sinal.</p>
+    </div>
+    <aside class="notas">Fig. 30.4. E por que a variável done, e o while em volta do wait? Esta versão tem o lock, mas não tem estado: o pai dorme sempre, sem testar nada. Bloco 1: o filho só sinaliza. Bloco 2: o pai só espera. Avance: o filho roda logo depois de criado e sinaliza; não há thread dormindo em c, e o sinal se perde. Avance: o pai chega, chama wait e fica preso; nenhuma thread vai acordá-lo. A variável de condição não tem memória; quem guarda o que aconteceu é done. Dormir, acordar e travar giram em torno dessa variável de estado: o pai só dorme se done == 0. Daí as três peças da fig. 30.3: estado, lock e variável de condição, sempre juntos.</aside>
+  </section>
+
+  <section class="slide" id="prodcons" data-modelo="simulador-buffer">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">Produtor/consumidor</h2>
+    <div class="pc">
+      <button class="ator prod" type="button">produtor</button>
+      <p class="estado ep"></p>
+      <div class="buf"></div>
+      <div class="alca sem-gesto" aria-label="arraste para mudar o tamanho do buffer">⋮</div>
+      <button class="ator cons" type="button">consumidor</button>
+      <p class="estado ec"></p>
+      <p class="info"></p>
+      <button class="reset" type="button" aria-label="recomeçar">↺</button>
+      <p class="texto fala-pc"></p>
+    </div>
+    <aside class="notas">Seção 30.2. Antes do código, a estrutura: um buffer limitado entre produtores, que geram itens e os põem no buffer, e consumidores, que os tiram e usam. Exemplos reais: a fila de requisições de um servidor web com várias threads (o produtor põe requisições HTTP, as threads consumidoras as tiram e processam) e o pipe em grep foo file.txt | wc -l (grep produz, wc consome, e o buffer limitado fica no kernel). O problema foi proposto por Dijkstra, e foi ele que o levou a inventar o semáforo (próximo deck). Com as setas, o slide roda um roteiro com MAX = 1: o produtor põe até dormir, o consumidor tira e o acorda, o consumidor tira até dormir, e o produtor põe e o acorda. Depois, livre: clique no produtor para pôr um item, no consumidor para tirar um. Buffer cheio: o produtor dorme até um consumidor tirar algo e acordá-lo; buffer vazio: o consumidor dorme até o produtor pôr algo. Arraste a alça coral para mudar MAX (de 1 a 8): o ↺ volta ao início (MAX = 1, buffer vazio). fill aponta onde o próximo item entra; use, de onde o próximo sai, dando a volta no fim (buffer circular). O buffer é compartilhado: put e get mexem nele e em count, e por isso precisam de exclusão mútua; e cada lado precisa esperar uma condição (não cheio, não vazio).</aside>
+  </section>
+
+  <section class="slide" id="sem-sync" data-modelo="codigo-em-blocos">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">put e get, sem sincronização</h2>
+<pre class="objeto cod menor"><span class="b passo" data-passo="0">int buffer;
+int count = 0; <span class="c">// initially, empty</span></span><span class="b esp passo" data-passo="1">void put(int value) {
+    assert(count == 0);
+    <span class="g" data-grifo="5">count = 1;</span>
+    <span class="g" data-grifo="5">buffer = value;</span>
+}</span><span class="b esp passo" data-passo="2">int get() {
+    assert(count == 1);
+    <span class="g" data-grifo="5">count = 0;</span>
+    <span class="g" data-grifo="5">return buffer;</span>
+}</span></pre>
+<pre class="objeto cod menor col-meio"><span class="b passo" data-passo="3">void *producer(void *arg) {
+    int i;
+    int loops = (int) arg;
+    for (i = 0; i &lt; loops; i++) {
+        put(i);
+    }
+}</span><span class="b esp passo" data-passo="4">void *consumer(void *arg) {
+    while (1) {
+        int tmp = get();
+        printf("%d\n", tmp);
+    }
+}</span></pre>
+    <i class="passo" data-passo="5"></i><i class="passo" data-passo="6"></i>
+    <div class="troca lado">
+      <p class="texto passo" data-passo="0" data-sai="1">Um buffer de uma posição; count diz se está cheio.</p>
+      <p class="texto passo" data-passo="1" data-sai="2">put só funciona com o buffer vazio.</p>
+      <p class="texto passo" data-passo="2" data-sai="3">get só funciona com o buffer cheio.</p>
+      <p class="texto passo" data-passo="3" data-sai="4">O produtor põe loops itens.</p>
+      <p class="texto passo" data-passo="4" data-sai="5">O consumidor tira para sempre.</p>
+      <p class="texto passo" data-passo="5" data-sai="6">Duas threads mexem em buffer e count.</p>
+      <p class="texto passo" data-passo="6">E ninguém espera: put num buffer cheio dispara o assert.</p>
+    </div>
+    <p class="rotulo-termo lado-termo passo" data-passo="5">seção crítica</p>
+    <aside class="notas">Figs. 30.6 e 30.7. O buffer mais simples: um inteiro só (poderia ser um ponteiro para uma estrutura) e count, que diz se está cheio. Bloco 1: as variáveis. Blocos 2 e 3: put() supõe o buffer vazio (o assert confere), guarda o valor e marca cheio; get() faz o contrário. Depois o buffer vira uma fila com várias posições, como no simulador. Blocos 4 e 5: o produtor põe loops inteiros; o consumidor tira para sempre e imprime. Avance: put e get leem e escrevem buffer e count, que são compartilhados: seção crítica, e sem lock dá condição de corrida. Avance: e mais que exclusão mútua, cada lado precisa esperar: só pôr com count == 0, só tirar com count == 1. Se o produtor puser num buffer cheio ou o consumidor tirar de um vazio, o assert dispara. Pôr um lock em volta não basta; precisamos de variáveis de condição.</aside>
+  </section>
+  <section class="slide" id="if-uma-cv" data-modelo="produtor-consumidor">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">Primeira tentativa: if e uma CV</h2>
+<pre class="objeto cod menor col-esq"><span class="b passo" data-passo="0">void *producer(void *arg) {
+    int i;
+    for (i = 0; i &lt; loops; i++) {
+        Pthread_mutex_lock(&amp;mutex);           <span class="c">// p1</span>
+        if (count == 1)                       <span class="c">// p2</span>
+            Pthread_cond_wait(&amp;cond, &amp;mutex); <span class="c">// p3</span>
+        put(i);                               <span class="c">// p4</span>
+        Pthread_cond_signal(&amp;cond);           <span class="c">// p5</span>
+        Pthread_mutex_unlock(&amp;mutex);         <span class="c">// p6</span>
+    }
+}</span></pre>
+<pre class="objeto cod menor col-dir"><span class="b passo" data-passo="1">void *consumer(void *arg) {
+    int i;
+    for (i = 0; i &lt; loops; i++) {
+        Pthread_mutex_lock(&amp;mutex);           <span class="c">// c1</span>
+        if (count == 0)                       <span class="c">// c2</span>
+            Pthread_cond_wait(&amp;cond, &amp;mutex); <span class="c">// c3</span>
+        int tmp = get();                      <span class="c">// c4</span>
+        Pthread_cond_signal(&amp;cond);           <span class="c">// c5</span>
+        Pthread_mutex_unlock(&amp;mutex);         <span class="c">// c6</span>
+        printf("%d\n", tmp);
+    }
+}</span></pre>
+    <i class="passo" data-passo="2"></i>
+    <div class="troca baixo">
+      <p class="texto passo" data-passo="0" data-sai="1">O produtor espera o buffer esvaziar.</p>
+      <p class="texto passo" data-passo="1" data-sai="2">O consumidor espera o buffer encher.</p>
+      <p class="texto passo" data-passo="2">Um produtor e um consumidor: funciona. E com dois consumidores?</p>
+    </div>
+    <aside class="notas">Fig. 30.8. Uma variável de condição cond e um lock mutex, globais (int loops; cond_t cond; mutex_t mutex;). Bloco 1: o produtor pega o lock (p1), se o buffer estiver cheio dorme (p2–p3), põe o item (p4), sinaliza (p5) e solta (p6). Bloco 2: o consumidor faz o mesmo, esperando o buffer encher (c1–c3). Avance: com um produtor e um consumidor, funciona. Com dois consumidores (Tc1 e Tc2) e um produtor (Tp), há dois problemas. O primeiro está no if antes do wait: próximo slide.</aside>
+  </section>
+  <section class="slide" id="fura-fila" data-modelo="cena-threads" data-max-palavras="50">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">if: Tc2 fura a fila</h2>
+    <div class="lado-cena"><p class="cab">buffer</p><div class="buf-cena"><div class="slot1"></div><span class="cnt"></span></div><p class="cab">fila de cond</p><div class="fila-cv"></div></div>
+    <div class="faixas"></div>
+    <p class="texto fala-cena"></p>
+    <p class="rotulo-termo lado-termo-cena passo" data-passo="8">semântica Mesa</p>
+    <aside class="notas">Fig. 30.9, o código com if e uma CV. Dois consumidores (Tc1, Tc2) e um produtor (Tp); o escalonador decide quem vai para a CPU. Avance a cada passo. Tc1 pega o lock, vê o buffer vazio (c1, c2) e dorme em cond (c3), soltando o lock. Tp roda, enche o buffer (p1, p2, p4) e sinaliza (p5): Tc1 sai da fila de cond e vai para as prontas, mas não roda ainda. Tp volta ao laço, vê o buffer cheio e dorme (p6, p1–p3). Agora o escalonador escolhe Tc2, que entra na frente: o buffer está cheio, então ele nem dorme (c1, c2, c4) e consome o único valor; sinaliza (c5) e acorda Tp. Por fim Tc1 roda: readquire o lock ao voltar do wait, não testa de novo (é um if) e chama get() com o buffer vazio: o assert dispara. O sinal só acorda a thread; é uma dica de que o estado mudou, sem garantia de que continue assim quando ela rodar. Essa é a semântica Mesa (Lampson e Redell), a de praticamente todo sistema. A semântica Hoare garante que a thread acordada roda na hora, mas é mais difícil de construir.</aside>
+  </section>
+  <section class="slide" id="while-uma-cv" data-modelo="produtor-consumidor">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">Conserto 1: while</h2>
+<pre class="objeto cod menor col-esq">void *producer(void *arg) {
+    int i;
+    for (i = 0; i &lt; loops; i++) {
+        Pthread_mutex_lock(&amp;mutex);           <span class="c">// p1</span>
+        <span class="g" data-grifo="1">while (count == 1)                   </span> <span class="c">// p2</span>
+            Pthread_cond_wait(&amp;cond, &amp;mutex); <span class="c">// p3</span>
+        put(i);                               <span class="c">// p4</span>
+        <span class="g" data-grifo="2">Pthread_cond_signal(&amp;cond);          </span> <span class="c">// p5</span>
+        Pthread_mutex_unlock(&amp;mutex);         <span class="c">// p6</span>
+    }
+}</pre>
+<pre class="objeto cod menor col-dir">void *consumer(void *arg) {
+    int i;
+    for (i = 0; i &lt; loops; i++) {
+        Pthread_mutex_lock(&amp;mutex);           <span class="c">// c1</span>
+        <span class="g" data-grifo="1">while (count == 0)                   </span> <span class="c">// c2</span>
+            Pthread_cond_wait(&amp;cond, &amp;mutex); <span class="c">// c3</span>
+        int tmp = get();                      <span class="c">// c4</span>
+        <span class="g" data-grifo="2">Pthread_cond_signal(&amp;cond);          </span> <span class="c">// c5</span>
+        Pthread_mutex_unlock(&amp;mutex);         <span class="c">// c6</span>
+        printf("%d\n", tmp);
+    }
+}</pre>
+    <i class="passo" data-passo="1"></i><i class="passo" data-passo="2"></i>
+    <div class="troca baixo">
+      <p class="texto passo" data-passo="1" data-sai="2">Acordou? Testa de novo. Se o buffer estiver vazio, volta a dormir.</p>
+      <p class="texto passo" data-passo="2">Ainda falha: com uma CV só, quem sinaliza não escolhe quem acorda.</p>
+    </div>
+    <aside class="notas">Fig. 30.10. O mesmo código, com while no lugar de if, no consumidor (c2) e no produtor (p2). Avance: agora Tc1 acorda e, com o lock preso, testa count de novo; se Tc2 já consumiu, volta a dormir. Por causa da semântica Mesa, a regra é sempre usar while: às vezes não é preciso testar de novo, mas testar é sempre seguro. Avance: o código ainda tem o segundo problema, ligado a haver uma variável de condição só. Pergunte antes de avançar de slide: quem o consumidor acorda no c5? Pode ser o outro consumidor.</aside>
+  </section>
+  <section class="slide" id="todos-dormem" data-modelo="cena-threads" data-max-palavras="50">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">Uma CV só: todos dormem</h2>
+    <div class="lado-cena"><p class="cab">buffer</p><div class="buf-cena"><div class="slot1"></div><span class="cnt"></span></div><p class="cab">fila de cond</p><div class="fila-cv"></div></div>
+    <div class="faixas"></div>
+    <p class="texto fala-cena"></p>
+    <aside class="notas">Fig. 30.11, com o código do while e uma CV. Avance a cada passo. Os dois consumidores rodam primeiro e dormem (c1–c3: nada para pegar). Tp enche o buffer e acorda um consumidor, Tc1, que vai para as prontas. Tp volta ao laço (soltando e pegando o lock), vê o buffer cheio e dorme. Agora Tc1 está pronta e Tc2 e Tp dormem. Tc1 volta do wait, testa de novo (c2), consome (c4) e sinaliza (c5), acordando uma thread só. Qual? Deveria ser o produtor, porque o buffer esvaziou; mas pode ser Tc2, dependendo de como a fila de espera é gerenciada. Tc1 volta ao laço, vê o buffer vazio e dorme. Tc2 acorda, testa, vê o buffer vazio e dorme. O produtor, que tem um valor para pôr, continua dormindo: as três threads dormem. O sinal precisa ter direção: consumidor só acorda produtor, e vice-versa.</aside>
+  </section>
+  <section class="slide" id="duas-cvs" data-modelo="produtor-consumidor">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">Conserto 2: duas CVs</h2>
+<pre class="objeto cod menor col-esq">void *producer(void *arg) {
+    int i;
+    for (i = 0; i &lt; loops; i++) {
+        Pthread_mutex_lock(&amp;mutex);
+        while (count == 1)
+        <span class="g" data-grifo="1">    Pthread_cond_wait(&amp;empty, &amp;mutex);</span>
+        put(i);
+        <span class="g" data-grifo="1">Pthread_cond_signal(&amp;fill);</span>
+        Pthread_mutex_unlock(&amp;mutex);
+    }
+}</pre>
+<pre class="objeto cod menor col-dir">void *consumer(void *arg) {
+    int i;
+    for (i = 0; i &lt; loops; i++) {
+        Pthread_mutex_lock(&amp;mutex);
+        while (count == 0)
+        <span class="g" data-grifo="2">    Pthread_cond_wait(&amp;fill, &amp;mutex);</span>
+        int tmp = get();
+        <span class="g" data-grifo="2">Pthread_cond_signal(&amp;empty);</span>
+        Pthread_mutex_unlock(&amp;mutex);
+        printf("%d\n", tmp);
+    }
+}</pre>
+    <i class="passo" data-passo="1"></i><i class="passo" data-passo="2"></i>
+    <div class="troca baixo">
+      <p class="texto passo" data-passo="1" data-sai="2">O produtor espera em empty e sinaliza fill.</p>
+      <p class="texto passo" data-passo="2">O consumidor espera em fill e sinaliza empty: um consumidor nunca acorda outro consumidor.</p>
+    </div>
+    <aside class="notas">Fig. 30.12. Duas variáveis de condição, cond_t empty, fill. Avance: o produtor dorme em empty (espera o buffer esvaziar) e, depois de pôr, sinaliza fill. Avance: o consumidor dorme em fill (espera o buffer encher) e, depois de tirar, sinaliza empty. Assim o segundo problema some por construção: um consumidor nunca acorda outro consumidor por acidente, nem um produtor outro produtor. Quadro "Use while (not if) for conditions": o while também cobre os despertares espúrios (spurious wakeups), em que, por detalhe de implementação, duas threads acordam com um signal só.</aside>
+  </section>
+  <section class="slide" id="varias" data-modelo="codigo-em-blocos">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">Um buffer com MAX posições</h2>
+<pre class="objeto cod menor col-esq"><span class="b passo" data-passo="0">int buffer[MAX];
+int fill_ptr = 0;
+int use_ptr = 0;
+int count    = 0;</span><span class="b esp passo" data-passo="1">void put(int value) {
+    buffer[fill_ptr] = value;
+    fill_ptr = (fill_ptr + 1) % MAX;
+    count++;
+}</span><span class="b esp passo" data-passo="2">int get() {
+    int tmp = buffer[use_ptr];
+    use_ptr = (use_ptr + 1) % MAX;
+    count--;
+    return tmp;
+}</span></pre>
+<pre class="objeto cod menor col-dir"><span class="b passo" data-passo="3">void *producer(void *arg) {
+    int i;
+    for (i = 0; i &lt; loops; i++) {
+        Pthread_mutex_lock(&amp;mutex);
+        <span class="g" data-grifo="4">while (count == MAX)</span>
+            Pthread_cond_wait(&amp;empty, &amp;mutex);
+        put(i);
+        Pthread_cond_signal(&amp;fill);
+        Pthread_mutex_unlock(&amp;mutex);
+    }
+}</span></pre>
+    <i class="passo" data-passo="4"></i>
+    <div class="troca baixo">
+      <p class="texto passo" data-passo="0" data-sai="1">O buffer vira uma fila circular: fill_ptr e use_ptr, como no simulador.</p>
+      <p class="texto passo" data-passo="1" data-sai="2">put escreve em fill_ptr e avança.</p>
+      <p class="texto passo" data-passo="2" data-sai="3">get lê em use_ptr e avança.</p>
+      <p class="texto passo" data-passo="3" data-sai="4">A sincronização é a mesma: duas CVs e while.</p>
+      <p class="texto passo" data-passo="4">Só muda a condição: o produtor dorme só com todas as posições cheias.</p>
+    </div>
+    <aside class="notas">Figs. 30.13 e 30.14, a solução correta. Mais posições no buffer permitem produzir vários valores antes de dormir e consumir vários antes de dormir: com um produtor e um consumidor, menos trocas de contexto; com vários, produção e consumo concorrentes. Bloco 1: o vetor, os dois índices e count. Bloco 2: put grava em fill_ptr e avança com módulo MAX. Bloco 3: get lê em use_ptr e avança. Bloco 4: o produtor, igual ao de duas CVs. Avance: a única mudança é a condição: o produtor dorme só se count == MAX (p2); o consumidor continua dormindo só se count == 0 (c2). Voltar ao simulador se quiser mostrar com MAX maior.</aside>
+  </section>
+
+  <section class="slide" id="alocar-cod" data-modelo="codigo-em-blocos">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">Um alocador de memória</h2>
+<pre class="objeto cod menor col-esq"><span class="b passo" data-passo="0"><span class="c">// how many bytes of the heap are free?</span>
+int bytesLeft = MAX_HEAP_SIZE;
+
+<span class="c">// need lock and condition too</span>
+cond_t c;
+mutex_t m;</span><span class="b esp passo" data-passo="1">void *
+allocate(int size) {
+    Pthread_mutex_lock(&amp;m);
+    while (bytesLeft &lt; size)
+        Pthread_cond_wait(&amp;c, &amp;m);
+    void *ptr = ...; <span class="c">// get mem from heap</span>
+    bytesLeft -= size;
+    Pthread_mutex_unlock(&amp;m);
+    return ptr;
+}</span></pre>
+<pre class="objeto cod menor col-dir"><span class="b passo" data-passo="2">void free(void *ptr, int size) {
+    Pthread_mutex_lock(&amp;m);
+    <span class="c">// return some memory to the heap</span>
+    bytesLeft += size;
+    <span class="g" data-grifo="3">Pthread_cond_signal(&amp;c); <span class="c">// whom to signal??</span></span>
+    Pthread_mutex_unlock(&amp;m);
+}</span></pre>
+    <i class="passo" data-passo="3"></i>
+    <div class="troca lado" style="left: 815px; top: 470px; width: 660px;">
+      <p class="texto passo" data-passo="1" data-sai="2">Quem pede mais do que há livre dorme.</p>
+      <p class="texto passo" data-passo="2" data-sai="3">Quem libera devolve os bytes e sinaliza.</p>
+      <p class="texto passo" data-passo="3">Mas acorda quem? Pode haver várias threads esperando, cada uma por um tamanho.</p>
+    </div>
+    <aside class="notas">Seção 30.3, fig. 30.15, do artigo de Lampson e Redell sobre o Pilot (o mesmo grupo da semântica Mesa). Uma biblioteca de alocação de memória simplificada. Bloco 1: quantos bytes do heap estão livres, um lock e uma variável de condição. Bloco 2: allocate dorme enquanto não houver bytes suficientes; depois tira os bytes. Bloco 3: free devolve os bytes e sinaliza. Avance: o problema é o signal: há várias threads esperando, cada uma por uma quantidade diferente. Qual acordar? Próximo slide, o exemplo.</aside>
+  </section>
+
+  <section class="slide" id="alocador" data-modelo="cenario-em-passos" data-max-palavras="60">
+    <img class="logo" src="../../.design-system/assets/img/logo-inteli-escuro-coral.png" alt="inteli">
+    <h2 class="titulo topo">signal acorda a thread errada</h2>
+    <div class="heap"><p class="cab">bytesLeft</p><p class="valor">0</p></div>
+    <div class="fila"><p class="cab">dormindo em c</p><div class="cartoes"></div></div>
+    <div class="livre"><p class="cab">Tc</p><p class="chamada">free(50)</p></div>
+    <p class="texto fala"></p>
+    <p class="rotulo-termo lado-termo passo" data-passo="5">covering condition</p>
+    <i class="passo" data-passo="1"></i><i class="passo" data-passo="2"></i><i class="passo" data-passo="3"></i><i class="passo" data-passo="4"></i><i class="passo" data-passo="5"></i>
+    <aside class="notas">O exemplo da seção 30.3. Nenhum byte livre. Ta chama allocate(100) e Tb chama allocate(10): as duas dormem na mesma variável de condição. Avance: Tc chama free(50); agora há 50 bytes. Avance: o signal acorda uma thread só, e pode ser Ta. Avance: Ta testa de novo (while), 50 &lt; 100, e volta a dormir. Tb, que só precisava de 10, continua dormindo: ninguém progride. Quem sinaliza não sabe quem acordar. Avance: a solução de Lampson e Redell é trocar pthread_cond_signal por pthread_cond_broadcast, que acorda todas as threads que esperam. Avance: cada uma testa de novo: Ta volta a dormir, Tb aloca 10 e sobram 40. O custo: acordar threads à toa, que só testam e voltam a dormir. Lampson e Redell chamam isso de covering condition, porque cobre todos os casos em que alguém precisa acordar, de forma conservadora. Daria para usar broadcast no produtor/consumidor de uma CV só, mas lá havia solução melhor (duas CVs). Se o programa só funciona trocando signal por broadcast, sem você achar que precisaria, provavelmente há um bug.</aside>
   </section>
 
 </main>
 <script>
-  /* Fonte única dos tópicos. Cada tópico é um passo: o primeiro já aparece no estado 0. */
-  const TOPICOS = [
-    "Esperar sem girar",
-    "<code>wait</code> e <code>signal</code>",
-    "O sinal perdido",
-    "Produtor/consumidor",
-    "<code>if</code> → <code>while</code>: semântica Mesa",
-    "Uma variável de condição só",
-    "Duas variáveis de condição",
-    "Covering conditions e <code>broadcast</code>",
-    "As três regras",
+  /* Marca o bloco que acabou de entrar (.agora) e acende os grifos a partir do passo deles. */
+  document.querySelectorAll(".slide").forEach((sec) => {
+    const marcar = () => {
+      const k = parseInt(sec.dataset.estado || "0", 10);
+      const blocos = sec.querySelectorAll("pre.cod .b");
+      blocos.forEach((b) => b.classList.toggle("agora", blocos.length > 1 && parseInt(b.dataset.passo, 10) === k));
+      sec.querySelectorAll("[data-grifo]").forEach((g) => g.classList.toggle("grifado", k >= parseInt(g.dataset.grifo, 10)));
+    };
+    new MutationObserver(marcar).observe(sec, { attributes: true, attributeFilter: ["data-estado"] });
+    marcar();
+  });
+</script>
+<script>
+  /* Cenas com threads. Cada passo muda só o que mudou: estado (est), instrução (faz), fila da CV, count, quem destacar (ruim) e a fala.
+     est e faz se acumulam de um passo para o outro; fila, count e ruim valem só no passo. */
+  function cena(id, threads, passos) {
+    const sec = document.getElementById(id);
+    const faixas = sec.querySelector(".faixas"), fila = sec.querySelector(".fila-cv"), fala = sec.querySelector(".fala-cena");
+    const slot = sec.querySelector(".slot1"), cnt = sec.querySelector(".cnt");
+    faixas.innerHTML = threads.map((t) => `<div class="fx pronta" data-t="${t}"><span class="nome">${t}</span><span class="est"></span><span class="faz"></span></div>`).join("");
+    passos.slice(1).forEach((_, i) => sec.insertAdjacentHTML("beforeend", `<i class="passo" data-passo="${i + 1}"></i>`));
+    let filaAntes = "";
+    const marcar = () => {
+      const k = Math.min(passos.length - 1, parseInt(sec.dataset.estado || "0", 10));
+      const est = Object.fromEntries(threads.map((t) => [t, "pronta"])), faz = {};
+      passos.slice(0, k + 1).forEach((p) => { Object.assign(est, p.est || {}); Object.assign(faz, p.faz || {}); });
+      const p = passos[k];
+      faixas.querySelectorAll(".fx").forEach((f) => {
+        const t = f.dataset.t;
+        f.className = `fx ${est[t]}${(p.ruim || []).includes(t) ? " ruim" : ""}`;
+        f.querySelector(".est").textContent = est[t];
+        f.querySelector(".faz").textContent = faz[t] || "";
+      });
+      const nomes = (p.fila || []).join(",");
+      if (nomes !== filaAntes) {
+        fila.innerHTML = (p.fila || []).length ? p.fila.map((t) => `<div class="chip">${t}</div>`).join("") : `<p class="vazia">vazia</p>`;
+        filaAntes = nomes;
+      }
+      if (slot) { slot.innerHTML = p.count ? `<div class="item"></div>` : ""; cnt.textContent = `count = ${p.count}`; }
+      fala.textContent = p.fala;
+    };
+    fila.innerHTML = `<p class="vazia">vazia</p>`;
+    new MutationObserver(marcar).observe(sec, { attributes: true, attributeFilter: ["data-estado"] });
+    marcar();
+  }
+
+  /* #canal: wait e signal. Quem o signal acorda é sorteado quando o deck abre; quem acorda roda e sinaliza também. */
+  (() => {
+    const passos = [
+      { fila: [], fala: "Quatro threads prontas. A fila de c começa vazia." },
+      { est: { T1: "roda" }, faz: { T1: "wait(&c)" }, fila: [], fala: "T1 roda e chama wait." },
+      { est: { T1: "dorme", T2: "roda" }, faz: { T1: "esperando em c", T2: "wait(&c)" }, fila: ["T1"], fala: "T1 dorme na fila de c. T2 roda e também chama wait." },
+      { est: { T2: "dorme", T3: "roda" }, faz: { T2: "esperando em c", T3: "wait(&c)" }, fila: ["T1", "T2"], fala: "T2 dorme. T3 roda e chama wait." },
+      { est: { T3: "dorme", T4: "roda" }, faz: { T3: "esperando em c", T4: "signal(&c)" }, fila: ["T1", "T2", "T3"], fala: "T3 dorme. T4 roda e chama signal." },
+    ];
+    let fila = ["T1", "T2", "T3"], quem = "T4";
+    while (fila.length) {
+      const t = fila[Math.floor(Math.random() * fila.length)];
+      fila = fila.filter((x) => x !== t);
+      passos.push({ est: { [t]: "pronta", [quem]: quem === "T4" ? "roda" : "roda" }, faz: { [t]: "acordou" }, fila: fila.slice(), ruim: [t],
+        fala: `signal acorda uma thread da fila: ${t}. Ela fica PRONTA, mas ainda não roda.` });
+      passos.push({ est: { [quem]: "pronta", [t]: "roda" }, faz: { [quem]: "", [t]: "volta do wait; signal(&c)" }, fila: fila.slice(),
+        fala: `O escalonador escolhe ${t}: ela sai do wait e, neste exemplo, também sinaliza.` });
+      quem = t;
+    }
+    passos.push({ est: { [quem]: "pronta" }, faz: { [quem]: "" }, fila: [], fala: "A fila está vazia: esse signal não acorda ninguém, e o sinal não fica guardado." });
+    cena("canal", ["T1", "T2", "T3", "T4"], passos);
+  })();
+
+  /* #fura-fila: fig. 30.9 (if e uma CV) */
+  cena("fura-fila", ["Tc1", "Tc2", "Tp"], [
+    { fila: [], count: 0, fala: "Dois consumidores, um produtor e um buffer de uma posição." },
+    { est: { Tc1: "roda" }, faz: { Tc1: "c2: if (count == 0)" }, fila: [], count: 0, fala: "Tc1 roda: o buffer está vazio." },
+    { est: { Tc1: "dorme" }, faz: { Tc1: "c3: wait(&cond)" }, fila: ["Tc1"], count: 0, fala: "Tc1 chama wait e dorme na fila de cond." },
+    { est: { Tp: "roda" }, faz: { Tp: "p4: put(0)" }, fila: ["Tc1"], count: 1, fala: "Tp roda e enche o buffer." },
+    { est: { Tc1: "pronta" }, faz: { Tp: "p5: signal(&cond)", Tc1: "acordou no wait" }, fila: [], count: 1, ruim: ["Tc1"], fala: "Tp sinaliza: Tc1 acorda, mas fica PRONTA, sem rodar." },
+    { est: { Tp: "dorme" }, faz: { Tp: "p3: cheio, wait(&cond)" }, fila: ["Tp"], count: 1, fala: "Tp volta ao laço, vê o buffer cheio e dorme." },
+    { est: { Tc2: "roda" }, faz: { Tc2: "c2, c4: get()" }, fila: ["Tp"], count: 0, ruim: ["Tc2"], fala: "O escalonador escolhe Tc2: o buffer está cheio, ele nem dorme e consome." },
+    { est: { Tp: "pronta" }, faz: { Tc2: "c5: signal(&cond)", Tp: "acordou no wait" }, fila: [], count: 0, fala: "Tc2 sinaliza e acorda Tp." },
+    { est: { Tc2: "pronta", Tc1: "roda" }, faz: { Tc2: "", Tc1: "c4: get()  vazio!" }, fila: [], count: 0, ruim: ["Tc1"], fala: "Tc1 enfim roda: sai do wait sem testar de novo (if) e chama get() com o buffer vazio." },
+  ]);
+
+  /* #todos-dormem: fig. 30.11 (while e uma CV) */
+  cena("todos-dormem", ["Tc1", "Tc2", "Tp"], [
+    { fila: [], count: 0, fala: "Agora com while, mas ainda uma CV só." },
+    { est: { Tc1: "roda" }, faz: { Tc1: "c2: while (count == 0)" }, fila: [], count: 0, fala: "Tc1 roda: o buffer está vazio." },
+    { est: { Tc1: "dorme" }, faz: { Tc1: "c3: wait(&cond)" }, fila: ["Tc1"], count: 0, fala: "Tc1 dorme." },
+    { est: { Tc2: "roda" }, faz: { Tc2: "c2: while (count == 0)" }, fila: ["Tc1"], count: 0, fala: "Tc2 roda: vazio também." },
+    { est: { Tc2: "dorme" }, faz: { Tc2: "c3: wait(&cond)" }, fila: ["Tc1", "Tc2"], count: 0, fala: "Tc2 dorme." },
+    { est: { Tp: "roda" }, faz: { Tp: "p4: put(0)" }, fila: ["Tc1", "Tc2"], count: 1, fala: "Tp roda e enche o buffer." },
+    { est: { Tc1: "pronta" }, faz: { Tp: "p5: signal(&cond)", Tc1: "acordou no wait" }, fila: ["Tc2"], count: 1, fala: "Tp sinaliza e acorda um consumidor: Tc1." },
+    { est: { Tp: "dorme" }, faz: { Tp: "p3: cheio, wait(&cond)" }, fila: ["Tc2", "Tp"], count: 1, fala: "Buffer cheio: Tp dorme." },
+    { est: { Tc1: "roda" }, faz: { Tc1: "c2: testa; c4: get()" }, fila: ["Tc2", "Tp"], count: 0, fala: "Tc1 roda, testa de novo (while): cheio. Consome." },
+    { est: { Tc2: "pronta" }, faz: { Tc1: "c5: signal(&cond)", Tc2: "acordou no wait" }, fila: ["Tp"], count: 0, ruim: ["Tc2"], fala: "Tc1 sinaliza, e a fila entrega Tc2, não o produtor." },
+    { est: { Tc1: "dorme" }, faz: { Tc1: "c3: vazio, wait(&cond)" }, fila: ["Tp", "Tc1"], count: 0, fala: "Tc1 volta ao laço: vazio. Dorme." },
+    { est: { Tc2: "roda" }, faz: { Tc2: "c2: while (count == 0)" }, fila: ["Tp", "Tc1"], count: 0, fala: "Tc2 roda, testa de novo: vazio." },
+    { est: { Tc2: "dorme" }, faz: { Tc2: "c3: wait(&cond)" }, fila: ["Tp", "Tc1", "Tc2"], count: 0, ruim: ["Tp", "Tc1", "Tc2"], fala: "Tc2 dorme. Todos dormem, e o produtor tinha o que pôr." },
+  ]);
+</script>
+<script>
+  /* #alocador: um estado por passo. bytesLeft, estado de Ta e Tb (dorme, acorda, feito), se Tc já chamou free e a fala. */
+  const ALOC = [
+    { bytes: 0, ta: "dorme", tb: "dorme", free: false, fala: "Ta pede 100, Tb pede 10. Não há memória: as duas dormem." },
+    { bytes: 50, ta: "dorme", tb: "dorme", free: true, fala: "Tc libera 50 bytes e chama signal." },
+    { bytes: 50, ta: "acorda", tb: "dorme", free: true, fala: "signal acorda uma thread só: Ta." },
+    { bytes: 50, ta: "dorme", tb: "dorme", free: true, fala: "Ta testa de novo: 50 < 100, volta a dormir. Tb, que caberia, continua dormindo." },
+    { bytes: 50, ta: "acorda", tb: "acorda", free: true, op: "broadcast", fala: "Com broadcast, as duas acordam e testam de novo." },
+    { bytes: 40, ta: "dorme", tb: "feito", free: true, op: "broadcast", fala: "Ta volta a dormir; Tb aloca 10. Custo: acordar threads à toa." },
   ];
-  const sec = document.getElementById("topicos");
-  const itens = document.createElement("div");
-  itens.className = "itens";
-  itens.innerHTML = TOPICOS.map((t, i) =>
-    `<p class="item passo" data-passo="${i}"><span class="marcador">${String(i + 1).padStart(2, "0")}</span><span>${t}</span></p>`).join("");
-  sec.append(itens);
-  /* O item do estado atual fica em destaque; os anteriores, apagados. */
-  const marcar = () => {
-    const k = parseInt(sec.dataset.estado || "0", 10);
-    sec.querySelectorAll(".item").forEach((p, i) => p.classList.toggle("agora", i === k));
-  };
-  new MutationObserver(marcar).observe(sec, { attributes: true, attributeFilter: ["data-estado"] });
-  marcar();
+  (() => {
+    const sec = document.getElementById("alocador");
+    const valor = sec.querySelector(".heap .valor"), cartoes = sec.querySelector(".cartoes");
+    const chamada = sec.querySelector(".chamada"), fala = sec.querySelector(".fala");
+    const rot = { dorme: "dorme", acorda: "acordou", feito: "alocou" };
+    const marcar = () => {
+      const e = ALOC[Math.min(ALOC.length - 1, parseInt(sec.dataset.estado || "0", 10))];
+      valor.textContent = e.bytes;
+      cartoes.innerHTML = [["Ta", 100, e.ta], ["Tb", 10, e.tb]].map(([n, q, st]) =>
+        `<div class="cartao ${st}"><p class="nome">${n}</p><p class="pede">allocate(${q})</p><p class="est">${rot[st]}</p></div>`).join("");
+      chamada.classList.toggle("on", e.free);
+      chamada.innerHTML = `free(50)<br><span class="op">${e.op || "signal"}</span>`;
+      fala.textContent = e.fala;
+    };
+    new MutationObserver(marcar).observe(sec, { attributes: true, attributeFilter: ["data-estado"] });
+    marcar();
+  })();
+</script>
+<script>
+  /* #prodcons: buffer circular com MAX posições (1 a 8). Os passos do slide reproduzem ROTEIRO_PC com MAX = 1;
+     os cliques e a alça mexem no mesmo estado, e o ↺ volta ao início. */
+  const ROTEIRO_PC = ["P", "P", "C", "P", "C", "C", "P"];
+  (() => {
+    const sec = document.getElementById("prodcons");
+    const W = 110, LIM = 8, X0 = 370;
+    const buf = sec.querySelector(".buf"), alca = sec.querySelector(".alca"), info = sec.querySelector(".info");
+    const prod = sec.querySelector(".prod"), cons = sec.querySelector(".cons"), fala = sec.querySelector(".fala-pc");
+    const estP = sec.querySelector(".ep"), estC = sec.querySelector(".ec");
+    let max, arr, fill, use, count, prox, dormeP, dormeC, novo = -1;
+    const aviso = (el, txt, ok) => { el.textContent = txt; el.classList.toggle("ok", !!ok); };
+    const zerar = () => {
+      max = 1; arr = [null]; fill = 0; use = 0; count = 0; prox = 0; dormeP = false; dormeC = false;
+      aviso(estP, ""); aviso(estC, ""); fala.textContent = "";
+    };
+    const desenhar = () => {
+      buf.innerHTML = arr.map((v, i) =>
+        `<div class="slot">${v === null ? "" : `<div class="item${i === novo ? " novo" : ""}">${v}</div>`}` +
+        (i === use ? `<span class="ptr use">use</span>` : "") +
+        (i === fill ? `<span class="ptr fill">fill</span>` : "") + `</div>`).join("");
+      buf.style.width = max * W + "px";
+      alca.style.left = X0 + max * W + "px";
+      info.textContent = `count = ${count}   MAX = ${max}`;
+    };
+    const produzir = () => {
+      if (count === max) { dormeP = true; aviso(estP, "dorme"); fala.textContent = "Buffer cheio: o produtor dorme."; return; }
+      novo = fill; arr[fill] = prox++ % 100; fill = (fill + 1) % max; count++;
+      aviso(estP, "");
+      fala.textContent = "O produtor põe um item.";
+      if (dormeC) { dormeC = false; aviso(estC, "acordou", true); fala.textContent = "O produtor põe um item e acorda o consumidor."; } else aviso(estC, "");
+    };
+    const consumir = () => {
+      if (count === 0) { dormeC = true; aviso(estC, "dorme"); fala.textContent = "Buffer vazio: o consumidor dorme."; return; }
+      novo = -1; arr[use] = null; use = (use + 1) % max; count--;
+      aviso(estC, "");
+      fala.textContent = "O consumidor tira um item.";
+      if (dormeP) { dormeP = false; aviso(estP, "acordou", true); fala.textContent = "O consumidor tira um item e acorda o produtor."; } else aviso(estP, "");
+    };
+    /* um clique não deixa o foco no botão, para o espaço continuar avançando o deck */
+    prod.addEventListener("click", (e) => { produzir(); desenhar(); e.currentTarget.blur(); });
+    cons.addEventListener("click", (e) => { consumir(); desenhar(); e.currentTarget.blur(); });
+    sec.querySelector(".reset").addEventListener("click", (e) => { zerar(); desenhar(); e.currentTarget.blur(); });
+    /* Arrastar a alça: o tamanho encaixa em posições inteiras e nunca fica abaixo de count. */
+    const redimensionar = (n) => {
+      n = Math.max(1, count, Math.min(LIM, n));
+      if (n === max) return;
+      const itens = [];
+      for (let k = 0; k < count; k++) itens.push(arr[(use + k) % max]);
+      max = n; arr = Array.from({ length: n }, (_, i) => (i < itens.length ? itens[i] : null));
+      use = 0; fill = count % n;
+      desenhar();
+    };
+    alca.addEventListener("pointerdown", (e) => {
+      alca.setPointerCapture(e.pointerId);
+      const mover = (ev) => {
+        const r = buf.getBoundingClientRect(), esc = r.width / buf.offsetWidth;
+        redimensionar(Math.round((ev.clientX - r.left) / (W * esc)));
+      };
+      alca.addEventListener("pointermove", mover);
+      alca.addEventListener("pointerup", () => alca.removeEventListener("pointermove", mover), { once: true });
+    });
+    /* Passos do slide: refaz o roteiro do início até o passo atual */
+    ROTEIRO_PC.forEach((_, i) => sec.insertAdjacentHTML("beforeend", `<i class="passo" data-passo="${i + 1}"></i>`));
+    const passo = () => {
+      zerar();
+      const k = parseInt(sec.dataset.estado || "0", 10);
+      ROTEIRO_PC.slice(0, k).forEach((a) => (a === "P" ? produzir() : consumir()));
+      novo = -1;
+      desenhar();
+    };
+    new MutationObserver(passo).observe(sec, { attributes: true, attributeFilter: ["data-estado"] });
+    passo();
+  })();
 </script>
 <script src="../../.design-system/js/deck.js"></script>
 </body>
