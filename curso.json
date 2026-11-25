@@ -174,36 +174,21 @@
       ]
     },
     {
-      "slug": "bugs-de-concorrencia",
-      "pasta": "bugs-de-concorrencia",
-      "titulo": "Bugs de concorrência e multiprocessadores",
-      "subtitulo": "Violações de atomicidade, de ordem, deadlock e false sharing",
-      "proposito": "Reconhecer os padrões de bug que aparecem em sistemas reais, evitar deadlock pela ordem de aquisição dos locks e ver como a coerência de cache faz um código correto deixar de escalar.",
+      "slug": "concorrencia-baseada-em-eventos",
+      "pasta": "concorrencia-baseada-em-eventos",
+      "titulo": "Concorrência baseada em eventos",
+      "subtitulo": "Um servidor concorrente com uma thread só",
+      "proposito": "Construir concorrência sem threads, com o loop de eventos, select() e I/O assíncrono, e ver onde essa abordagem deixa de funcionar. Na segunda metade, lista de exercícios de revisão para a P2.",
       "referencias": [
         {
-          "rotulo": "OSTEP, cap. 32: Common Concurrency Problems",
+          "rotulo": "OSTEP, cap. 33: Event-based Concurrency (Advanced)",
           "tipo": "PDF",
-          "link": "https://pages.cs.wisc.edu/~remzi/OSTEP/threads-bugs.pdf"
+          "link": "https://pages.cs.wisc.edu/~remzi/OSTEP/threads-events.pdf"
         },
         {
-          "rotulo": "Lu et al., Learning from Mistakes: A Comprehensive Study on Real World Concurrency Bug Characteristics (ASPLOS 2008)",
+          "rotulo": "OSTEP, cap. 34: Summary Dialogue on Concurrency",
           "tipo": "PDF",
-          "link": "https://people.cs.uchicago.edu/~shanlu/paper/asplos122-lu.pdf"
-        },
-        {
-          "rotulo": "Código do homework (threads-bugs)",
-          "tipo": "GitHub",
-          "link": "https://github.com/remzi-arpacidusseau/ostep-homework/tree/master/threads-bugs"
-        },
-        {
-          "rotulo": "OSTEP, cap. 10: Multiprocessor Scheduling (seções 10.1 a 10.3)",
-          "tipo": "PDF",
-          "link": "https://pages.cs.wisc.edu/~remzi/OSTEP/cpu-sched-multi.pdf"
-        },
-        {
-          "rotulo": "Rust Atomics and Locks, cap. 7: Understanding the Processor",
-          "tipo": "livro online",
-          "link": "https://marabos.nl/atomics/hardware.html"
+          "link": "https://pages.cs.wisc.edu/~remzi/OSTEP/threads-dialogue.pdf"
         }
       ]
     }

@@ -15,7 +15,7 @@ window.QUESTOES = [
     ],
     gab: 1,
     just: [
-      "Seção 29.1 (fig. 29.5). Com um lock só, as duas CPUs não trabalham em paralelo: cada incremento espera o lock, e a variável do lock e o contador mudam de CPU a cada vez, o que custa caro (assunto da aula de multiprocessadores). Por isso o tempo não só deixa de cair: ele explode.",
+      "Seção 29.1 (fig. 29.5). Com um lock só, as duas CPUs não trabalham em paralelo: cada incremento espera o lock, e a variável do lock e o contador mudam de CPU a cada vez, o que custa caro (coerência de cache). Por isso o tempo não só deixa de cair: ele explode.",
       "(A) Uma diferença de quase 100 vezes não é ruído.",
       "(C) O lock garante justamente que nenhuma atualização se perca; não há correção a fazer.",
       "(D) O escalonador não junta threads por causa de um lock.",
